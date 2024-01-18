@@ -1,8 +1,11 @@
-import "./App.css";
-import Example from "./Example";
+import PuzzleCanvas from "@/components/PuzzleCanvas";
 
 function App() {
-  return <Example />;
+  return (
+    <main style={{ border: "3px solid royalblue", borderRadius: "10px" }}>
+      <PuzzleCanvas />
+    </main>
+  );
 }
 
 export default App;

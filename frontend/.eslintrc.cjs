@@ -28,7 +28,7 @@ module.exports = {
         location: "anywhere",
       },
     ],
-    "no-var": "error",
+    "no-var": "warn",
     curly: ["error", "all"],
     eqeqeq: ["error", "always", { null: "ignore" }],
 
