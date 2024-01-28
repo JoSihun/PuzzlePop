@@ -1,6 +1,5 @@
 package com.ssafy.puzzlepop.dm.domain;
 
-import com.ssafy.puzzlepop.image.domain.Image;
 import lombok.*;
 
 import java.util.Date;

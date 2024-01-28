@@ -1,10 +1,9 @@
 package com.ssafy.puzzlepop.dm.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
@@ -19,9 +18,21 @@ public class Dm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @NotNull
     private String fromUserId;
+
+    @NotNull
     private String toUserId;
+
+    @NotNull
     private String content;
+
+    @CreationTimestamp
+    @Column(nullable = false)
     private Date createTime;
+
+    @CreationTimestamp
+    @Column(nullable = false)
     private Date updateTime;
 }
