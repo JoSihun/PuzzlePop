@@ -15,5 +15,5 @@ public interface DmService {
 
     DmDto getDmById(int id) throws DmException;
 
-    List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto);
+    List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException;
 }

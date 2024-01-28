@@ -55,8 +55,6 @@ public class DmController {
         }
     }
 
-    //////////
-
     @GetMapping("/{id}")
     public ResponseEntity<?> findDmById(@PathVariable int id) {
         try {
@@ -66,6 +64,8 @@ public class DmController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+    //////////
 
     @PostMapping("/list")
     public ResponseEntity<?> findDmsByFriendId(@RequestBody DmReadRequestDto dmReadRequestDto) {

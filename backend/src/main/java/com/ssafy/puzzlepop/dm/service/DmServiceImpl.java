@@ -6,8 +6,7 @@ import com.ssafy.puzzlepop.dm.repository.DmRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 // TODO: delete 작업 시 soft delete 되도록 리팩토링&컬럼 추가 필요
 
@@ -84,12 +83,39 @@ public class DmServiceImpl implements DmService {
 
     @Override
     public DmDto getDmById(int id) throws DmException {
-        return null;
+
+        Dm existDm = dmRepository.findById(id).orElse(null);
+
+        if (existDm == null) {
+            throw new DmException("dm matches to id doesn't exist");
+        }
+
+        return new DmDto(existDm);
     }
 
     @Override
-    public List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) {
-        return null;
+    public List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException {
+
+        String userId = dmReadRequestDto.getUserId();
+        String friendId = dmReadRequestDto.getFriendId();
+
+        if (userId == null || friendId == null) {
+            throw new DmException("bad request");
+        }
+
+        try {
+            List<Dm> dmList = dmRepository.getDmsByFriendId(userId, friendId);
+
+            List<DmReadResponseDto> dmResponseList = new ArrayList<>();
+            for (Dm dm : dmList) {
+                dmResponseList.add(new DmReadResponseDto(dm.getId(), dm.getFromUserId(), dm.getToUserId(), dm.getContent(), dm.getCreateTime()));
+            }
+
+            return dmResponseList;
+        } catch (Exception e) {
+            throw new DmException("error occurred during get DMs by friendid");
+        }
+
     }
 
 }
