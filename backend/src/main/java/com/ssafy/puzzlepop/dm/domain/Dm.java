@@ -17,13 +17,13 @@ import java.util.Date;
 public class Dm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @NotNull
-    private String fromUserId;
+    private Long fromUserId;
 
     @NotNull
-    private String toUserId;
+    private Long toUserId;
 
     @NotNull
     private String content;

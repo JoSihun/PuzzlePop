@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class DmReadRequestDto {
 
-    private String userId;
-    private String friendId;
+    private Long userId;
+    private Long friendId;
 
 }

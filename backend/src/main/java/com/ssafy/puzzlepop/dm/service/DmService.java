@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface DmService {
 
-    int createDm(DmCreateDto dmCreateDto) throws DmException;
+    Long createDm(DmCreateDto dmCreateDto) throws DmException;
 
-    int updateDm(DmUpdateDto dmUpdateDto) throws DmException;
+    Long updateDm(DmUpdateDto dmUpdateDto) throws DmException;
 
-    void deleteDm(int id) throws DmException;
+    void deleteDm(Long id) throws DmException;
 
-    DmDto getDmById(int id) throws DmException;
+    DmDto getDmById(Long id) throws DmException;
 
     List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException;
 }

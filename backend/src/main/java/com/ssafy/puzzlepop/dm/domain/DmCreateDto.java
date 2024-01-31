@@ -9,8 +9,8 @@ import lombok.*;
 @ToString
 public class DmCreateDto {
 
-    private String fromUserId;
-    private String toUserId;
+    private Long fromUserId;
+    private Long toUserId;
     private String content;
 
 }

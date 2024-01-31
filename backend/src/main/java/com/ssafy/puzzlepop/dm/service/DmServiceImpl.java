@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-// TODO: delete 작업 시 soft delete 되도록 리팩토링&컬럼 추가 필요
+// TODO: delete 작업 시 soft delete 되도록 리팩터링&컬럼 추가 필요
 
 @Service
 public class DmServiceImpl implements DmService {
@@ -23,7 +23,7 @@ public class DmServiceImpl implements DmService {
     //////////
 
     @Override
-    public int createDm(DmCreateDto dmCreateDto) throws DmException {
+    public Long createDm(DmCreateDto dmCreateDto) throws DmException {
         if (dmCreateDto.getFromUserId() == null || dmCreateDto.getToUserId() == null || dmCreateDto.getContent() == null) {
             throw new DmException("bad request");
         }
@@ -43,7 +43,7 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public int updateDm(DmUpdateDto dmUpdateDto) throws DmException {
+    public Long updateDm(DmUpdateDto dmUpdateDto) throws DmException {
         if (dmUpdateDto.getId() <= 0 || dmUpdateDto.getContent() == null) {
             throw new DmException("bad request");
         }
@@ -66,7 +66,7 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public void deleteDm(int id) throws DmException {
+    public void deleteDm(Long id) throws DmException {
 
         Dm existDm = dmRepository.findById(id).orElse(null);
         if (existDm == null) {
@@ -82,7 +82,7 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public DmDto getDmById(int id) throws DmException {
+    public DmDto getDmById(Long id) throws DmException {
 
         Dm existDm = dmRepository.findById(id).orElse(null);
 
@@ -96,8 +96,8 @@ public class DmServiceImpl implements DmService {
     @Override
     public List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException {
 
-        String userId = dmReadRequestDto.getUserId();
-        String friendId = dmReadRequestDto.getFriendId();
+        Long userId = dmReadRequestDto.getUserId();
+        Long friendId = dmReadRequestDto.getFriendId();
 
         if (userId == null || friendId == null) {
             throw new DmException("bad request");

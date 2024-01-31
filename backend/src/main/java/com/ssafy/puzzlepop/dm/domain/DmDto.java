@@ -11,9 +11,9 @@ import java.util.Date;
 @ToString
 public class DmDto {
 
-    private int id;
-    private String fromUserId;
-    private String toUserId;
+    private Long id;
+    private Long fromUserId;
+    private Long toUserId;
     private String content;
     private Date createTime;
     private Date updateTime;

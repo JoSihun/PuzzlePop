@@ -28,7 +28,7 @@ public class DmController {
     @PostMapping
     public ResponseEntity<?> sendDm(@RequestBody DmCreateDto dmCreateDto) {
         try {
-            int id = dmService.createDm(dmCreateDto);
+            Long id = dmService.createDm(dmCreateDto);
             return ResponseEntity.status(HttpStatus.OK).body(id);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -38,7 +38,7 @@ public class DmController {
     @PutMapping
     public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) {
         try {
-            int id = dmService.updateDm(dmUpdateDto);
+            Long id = dmService.updateDm(dmUpdateDto);
             return ResponseEntity.status(HttpStatus.OK).body(id);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -46,7 +46,7 @@ public class DmController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDm(@PathVariable int id) {
+    public ResponseEntity<?> deleteDm(@PathVariable Long id) {
         try {
             dmService.deleteDm(id);
             return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");
@@ -56,7 +56,7 @@ public class DmController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findDmById(@PathVariable int id) {
+    public ResponseEntity<?> findDmById(@PathVariable Long id) {
         try {
             DmDto dmDto = dmService.getDmById(id);
             return ResponseEntity.status(HttpStatus.OK).body(id);

@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 public class DmUpdateDto {
 
-    private int id;
+    private Long id;
     private String content;
 
 }
