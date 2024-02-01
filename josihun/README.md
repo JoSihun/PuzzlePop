@@ -56,7 +56,7 @@
   - Item 테이블 Dto 구현
   - Item 테이블 Service 구현
   - Item 테이블 Controller 구현
-  
+
 
 # 🗓️ 2024년 01월 22일 (월)
 - 오전
@@ -66,4 +66,71 @@
   - 일정관리, ERD, FE 컨설팅
   - WBS 수정 및 담당자 배정
   - 게임정보 테이블 수정
-  
+
+
+# 🗓️ 2024년 01월 23일 (화)
+- 오전
+  - WBS 총정리
+  - API 명세서 총정리
+- 오후
+  - Team 정보 갱신 기능 구현
+  - Team 맞춘 피스 수 갱신 기능 구현
+  - Item 랜덤 추출 기능 구현
+
+
+# 🗓️ 2024년 01월 24일 (수)
+- 오전
+  - 프로젝트 설계 리뷰 시청
+  - Merge Request 진행
+  - WBS 일정관리 마무리
+- 오후
+  - EC2, NginX & SSL, Docker, Jenkins 강의시청
+  - Team-Item Mapping 테이블 구현
+
+
+# 🗓️ 2024년 01월 25일 (목)
+- 오전
+  - Front 서버 1차 배포
+  - WBS, API 명세서 수정
+- 오후
+  - 발표 Architecture, ERD, API 명세서 작성
+  - Team-Item Mapping 버그 수정
+  - 컨설턴트 팀 미팅
+
+
+# 🗓️ 2024년 01월 26일 (금)
+- 오전
+  - Sub PJT II 발표 및 평가
+- 오후
+  - Sub PJT II 발표 및 평가
+  - Gitlab Branch Merge
+  - Jira Issue 정리
+  - 2차 KPT 회고
+
+
+# 🗓️ 2024년 01월 29일 (월)
+- 오전
+  - Spring 수동 배포
+  - React 수동 배포
+  - Jenkins 서버 세팅
+- 오후
+  - 조퇴
+
+
+# 🗓️ 2024년 01월 30일 (화)
+- 오전
+  - Jenkins 서버 세팅
+- 오후
+  - 코치 팀 미팅
+  - 취업 특강
+
+
+
+# 🗓️ 2024년 01월 31일 (수)
+- 오전
+  - Jenkins BE Build & Deploy
+  - Jenkins FE Build & Deploy
+- 오후
+  - Jenkins FE Build & Deploy
+  - TeamUser Mapping Table 구현
+  - Git Branch 정리

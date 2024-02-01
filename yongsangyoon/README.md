@@ -48,6 +48,24 @@
 
 # 🗓️ 1월 22일 (월)
 
-- [x] 팀 전체 프로젝트 일정 계획 세분화
+- [x] 팀 전체 프로젝트 일정 계획 세분화 (1)
 - [x] Gerrit 활성화
 - [x] webSocket, webRTC 기반의 클라이언트-백엔드 아키텍처 학습
+
+# 🗓️ 1월 23일 (화)
+
+- [x] 팀 전체 프로젝트 일정 계획 세분화 (2)
+
+# 🗓️ 1월 24일 (수)
+
+- [x] 팀 전체 프로젝트 일정 계획 세분화 (3)
+- [x] puzzle-pop 페이지 라우팅 기능 구현
+- [x] springboot socket + react client 소켓 연결 (1)
+
+# 🗓️ 1월 25일 (목)
+
+- [x] springboot socket + react client 소켓 연결 (2)
+
+# 🗓️ 1월 29일 (월)
+
+- [x] springboot socket + react client 소켓 연결 (3)
