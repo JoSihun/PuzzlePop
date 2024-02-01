@@ -113,7 +113,7 @@ public class DmServiceImpl implements DmService {
 
             return dmResponseList;
         } catch (Exception e) {
-            throw new DmException("error occurred during get DMs by friendid");
+            throw new DmException("error occurred during get DMs");
         }
 
     }
