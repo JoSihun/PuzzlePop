@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UserDto {
     private Long id;
+    private String password;
     private String email;
     private String nickname;
     private String givenName;
@@ -40,6 +41,7 @@ public class UserDto {
     @Builder
     public UserDto(User user) {
         this.id = user.getId();
+        this.password = user.getPassword();
         this.email = user.getEmail();
         this.nickname = user.getNickname();
         this.givenName = user.getGivenName();
@@ -68,6 +70,7 @@ public class UserDto {
         return User.builder()
                 .id(this.id)
                 .email(this.email)
+                .password(this.password)
                 .nickname(this.nickname)
                 .givenName(this.givenName)
                 .familyName(this.familyName)
