@@ -8,63 +8,50 @@ package com.ssafy.puzzlepop.user.domain;
 
 // Security Session => Authentication => UserDetails
 
+import com.ssafy.puzzlepop.user.util.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @RequiredArgsConstructor
-public class PrincipalDetails implements UserDetails, OAuth2User {
+public class UserPrincipal implements UserDetails, OAuth2User {
 
-    private User user;
+    private long id;
+    private String email;
+    private String password;
+    private Collection<? extends GrantedAuthority> authorities;
+    @Setter
     private Map<String, Object> attributes;
 
-    // 일반 로그인
-    public PrincipalDetails(User user) {
-        this.user = user;
+    public UserPrincipal(Long id, String email, String password, List<GrantedAuthority> authorities, Object o) {
     }
 
-    // OAuth 로그인
-    public PrincipalDetails(User user, Map<String, Object> attributes) {
-        this.user = user;
-        this.attributes = attributes;
+    public static UserPrincipal create(User user) {
+        List<GrantedAuthority> authorities =
+                Collections.singletonList(new SimpleGrantedAuthority("" + UserRole.CLIENT));
+        return new UserPrincipal(
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                authorities,
+                null
+        );
     }
 
-    // 해당 User의 권한을 리턴하는 곳!!
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-//
-//        Collection<GrantedAuthority> collect = new ArrayList<>();
-//
-//        collect.add(new GrantedAuthority() {
-//            @Override
-//            public String getAuthority() {
-//                return user.getRole();
-//            }
-//        });
-//
-//        return collect;
-//    }
-        return List.of(new SimpleGrantedAuthority(user.getRole()));
-    }
-
-    @Override
-    public String getPassword() {
-//        return user.getPassword();
-        return "Password";
-    }
-
-    @Override
-    public String getUsername() {
-//        return user.getUsername();
-        return "Username";
+    public static UserPrincipal create(User user, Map<String, Object> attributes) {
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        userPrincipal.setAttributes(attributes);
+        return userPrincipal;
     }
 
     @Override
@@ -88,16 +75,17 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     }
 
     @Override
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public String getEmail() {
-        return user.getEmail();
+    public String getName() {
+        return String.valueOf(id);
     }
 
     @Override
-    public String getName() {
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public String getPassword() {
         return null;
     }
 }
