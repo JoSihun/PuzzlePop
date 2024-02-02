@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface DmService {
 
-    Long createDm(DmCreateDto dmCreateDto) throws DmException;
+    DmReadResponseDto createDm(DmCreateDto dmCreateDto) throws DmException;
 
     Long updateDm(DmUpdateDto dmUpdateDto) throws DmException;
 
@@ -15,5 +15,5 @@ public interface DmService {
 
     DmDto getDmById(Long id) throws DmException;
 
-    List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException;
+    List<DmReadResponseDto> getDmsByUserIdAndFriendUserId(DmReadRequestDto dmReadRequestDto) throws DmException;
 }

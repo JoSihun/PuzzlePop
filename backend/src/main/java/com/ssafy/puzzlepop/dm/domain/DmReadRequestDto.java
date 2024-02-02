@@ -13,6 +13,6 @@ import lombok.*;
 public class DmReadRequestDto {
 
     private Long userId;
-    private Long friendId;
+    private Long friendUserId;
 
 }

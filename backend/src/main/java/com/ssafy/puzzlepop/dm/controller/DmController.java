@@ -1,12 +1,17 @@
 package com.ssafy.puzzlepop.dm.controller;
 
 import com.ssafy.puzzlepop.dm.domain.*;
+import com.ssafy.puzzlepop.dm.exception.DmException;
 import com.ssafy.puzzlepop.dm.service.DmService;
+import com.ssafy.puzzlepop.friend.domain.FriendDto;
+import com.ssafy.puzzlepop.friend.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,75 +19,79 @@ import java.util.List;
 // TODO: exception 발생 시 body에 에러 메세지 그대로 보내는 부분 리팩토링
 
 @RestController
+//@RequestMapping("/dm")
 public class DmController {
 
     private final DmService dmService;
+    private final SimpMessageSendingOperations sendingOperations;
 
     @Autowired
-    private DmController(DmService dmService) {
+    private DmController(DmService dmService, SimpMessageSendingOperations sendingOperations) {
         this.dmService = dmService;
+        this.sendingOperations = sendingOperations;
     }
 
     ////////
 
-//    @PostMapping
-    @MessageMapping("/")
-    @SendTo("/room/{id}")
-    public DmReadResponseDto sendDm(DmCreateDto dmCreateDto) {
+    /* Socket */
+
+    @EventListener
+
+
+    // dm방에서 dm 보내는 경우 - db에 dm 내용 저장 + friendId 구독하는 사용자들에게 내용 뿌리기
+    @MessageMapping("/send/{friendId}") // /sub/send/{friendId}에 대해 여기로 들어옴
+    public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) {
+        System.out.println(dmCreateDto);
         try {
-            Long id = dmService.createDm(dmCreateDto);
-
-            DmReadResponseDto dmDto = new DmReadResponseDto();
-            dmDto.setId(id);
-            dmDto.setFromUserId(dmCreateDto.getFromUserId());
-            dmDto.setToUserId(dmCreateDto.getToUserId());
-            dmDto.setContent(dmCreateDto.getContent());
-
-            return dmDto;
+            DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto); // db에 dm 내용 저장
+            sendingOperations.convertAndSend("/app/"+friendId.toString(), dmResponseDto);
         } catch (Exception e) {
-            return null;
-        }
-    }
-
-//    @PutMapping
-    public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) {
-        try {
-            Long id = dmService.updateDm(dmUpdateDto);
-            return ResponseEntity.status(HttpStatus.OK).body(id);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-//    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDm(@PathVariable Long id) {
-        try {
-            dmService.deleteDm(id);
-            return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
-
-//    @GetMapping("/{id}")
-    public ResponseEntity<?> findDmById(@PathVariable Long id) {
-        try {
-            DmDto dmDto = dmService.getDmById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(id);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            // TODO: exception handling 필요
         }
     }
 
     //////////
 
-    @PostMapping("/enter")
-    public ResponseEntity<?> findDmsByFriendId(@RequestBody DmReadRequestDto dmReadRequestDto) {
+    @PostMapping("/list")
+    public ResponseEntity<?> findDmsByUserIdAndFriendUserId(@RequestBody DmReadRequestDto dmReadRequestDto) {
         try {
-            List<DmReadResponseDto> dmList = dmService.getDmsByFriendId(dmReadRequestDto);
+            List<DmReadResponseDto> dmList = dmService.getDmsByUserIdAndFriendUserId(dmReadRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(dmList);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    //    @PutMapping
+    public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) {
+        try {
+            Long id = dmService.updateDm(dmUpdateDto);
+            return ResponseEntity.status(HttpStatus.OK).body(id);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    //    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteDm(@PathVariable Long id) {
+        try {
+            dmService.deleteDm(id);
+            return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    //    @GetMapping("/{id}")
+    public ResponseEntity<?> findDmById(@PathVariable Long id) {
+        try {
+            DmDto dmDto = dmService.getDmById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(id);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    //////////
+
 }

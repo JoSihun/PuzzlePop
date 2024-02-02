@@ -9,21 +9,17 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class DmSocketConfig implements WebSocketMessageBrokerConfigurer {
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // stomp 접속 주소 url => /ws-stomp
-        registry.addEndpoint("/ws-stomp").setAllowedOriginPatterns("*") // 연결될 엔드포인트
-                .withSockJS(); // SocketJS 를 연결한다는 설정
+        registry.addEndpoint("/dm/{friendId}") // stomp 설정
+                .setAllowedOrigins("*");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // 메시지를 구독하는 요청 url
+        // 메세지 구독 요청 url -> 메세지 받을 때
         registry.enableSimpleBroker("/queue");
-
-        // 메시지를 발행하는 요청 url
-        registry.setApplicationDestinationPrefixes("/pub");
+        // 메세지 발행 요청 url -> 메세지 보낼 때
+        registry.setApplicationDestinationPrefixes("/app");
     }
-
 }

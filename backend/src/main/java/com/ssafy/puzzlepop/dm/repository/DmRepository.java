@@ -12,7 +12,7 @@ import java.util.List;
 public interface DmRepository extends JpaRepository<Dm, Long> {
 
     @Query("SELECT d FROM Dm d " +
-            "WHERE (d.fromUserId = :userId AND d.toUserId = :friendId) OR " +
-            "(d.fromUserId = :friendId AND d.toUserId = :userId) ")
-    List<Dm> getDmsByFriendId(@Param("userId") Long userId, @Param("friendId") Long friendId);
+            "WHERE (d.fromUserId = :userId AND d.toUserId = :friendUserId) OR " +
+            "(d.fromUserId = :friendUserId AND d.toUserId = :userId) ")
+    List<Dm> getDmsByuserIdAndFriendUserId(@Param("userId") Long userId, @Param("friendUserId") Long friendUserId);
 }

@@ -23,7 +23,7 @@ public class DmServiceImpl implements DmService {
     //////////
 
     @Override
-    public Long createDm(DmCreateDto dmCreateDto) throws DmException {
+    public DmReadResponseDto createDm(DmCreateDto dmCreateDto) throws DmException { // db에 dm 데이터 저장하고 responseDto 형태로 반환
         if (dmCreateDto.getFromUserId() == null || dmCreateDto.getToUserId() == null || dmCreateDto.getContent() == null) {
             throw new DmException("bad request");
         }
@@ -36,7 +36,16 @@ public class DmServiceImpl implements DmService {
 
         try {
             dmRepository.save(dm);
-            return dm.getId();
+
+            // friendId 소켓방 구독하는 사용자에게 내용 뿌리기
+            DmReadResponseDto dmDto = new DmReadResponseDto();
+            dmDto.setId(dm.getId());
+            dmDto.setFromUserId(dm.getFromUserId());
+            dmDto.setToUserId(dm.getToUserId());
+            dmDto.setContent(dm.getContent());
+            dmDto.setCreateTime(dm.getCreateTime());
+
+            return dmDto;
         } catch (Exception e) {
             throw new DmException("error occurred while create dm");
         }
@@ -94,17 +103,17 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public List<DmReadResponseDto> getDmsByFriendId(DmReadRequestDto dmReadRequestDto) throws DmException {
+    public List<DmReadResponseDto> getDmsByUserIdAndFriendUserId(DmReadRequestDto dmReadRequestDto) throws DmException {
 
         Long userId = dmReadRequestDto.getUserId();
-        Long friendId = dmReadRequestDto.getFriendId();
+        Long friendUserId = dmReadRequestDto.getFriendUserId();
 
-        if (userId == null || friendId == null) {
+        if (userId == null || friendUserId == null) {
             throw new DmException("bad request");
         }
 
         try {
-            List<Dm> dmList = dmRepository.getDmsByFriendId(userId, friendId);
+            List<Dm> dmList = dmRepository.getDmsByuserIdAndFriendUserId(userId, friendUserId);
 
             List<DmReadResponseDto> dmResponseList = new ArrayList<>();
             for (Dm dm : dmList) {
