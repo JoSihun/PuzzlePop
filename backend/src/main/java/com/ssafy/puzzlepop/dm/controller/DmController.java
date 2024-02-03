@@ -13,13 +13,15 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.util.List;
 
 // TODO: exception 발생 시 body에 에러 메세지 그대로 보내는 부분 리팩토링
 
 @RestController
-//@RequestMapping("/dm")
+@RequestMapping("/dm")
 public class DmController {
 
     private final DmService dmService;
@@ -36,21 +38,31 @@ public class DmController {
     /* Socket */
 
     @EventListener
+    public void handleDmSocketConnectListener(SessionConnectEvent event) {
+        System.out.println("DM : new user connected to socket");
+        System.out.println("sessionid : " + event.getMessage().getHeaders().get("simpSessionId"));
+    }
 
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        System.out.println("DM : user disconnected to socket");
+        System.out.println("sessionid : " + event.getSessionId());
+    }
 
-    // dm방에서 dm 보내는 경우 - db에 dm 내용 저장 + friendId 구독하는 사용자들에게 내용 뿌리기
-    @MessageMapping("/send/{friendId}") // /sub/send/{friendId}에 대해 여기로 들어옴
+    @MessageMapping("/dm/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
     public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) {
-        System.out.println(dmCreateDto);
+
         try {
-            DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto); // db에 dm 내용 저장
-            sendingOperations.convertAndSend("/app/"+friendId.toString(), dmResponseDto);
+            DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto);
+            sendingOperations.convertAndSend("/queue/receive/"+friendId.toString(), dmResponseDto);
         } catch (Exception e) {
             // TODO: exception handling 필요
         }
     }
 
     //////////
+
+    /* http */
 
     @PostMapping("/list")
     public ResponseEntity<?> findDmsByUserIdAndFriendUserId(@RequestBody DmReadRequestDto dmReadRequestDto) {
