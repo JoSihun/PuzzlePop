@@ -4,6 +4,7 @@ import com.ssafy.puzzlepop.dm.domain.*;
 import com.ssafy.puzzlepop.dm.exception.DmException;
 import com.ssafy.puzzlepop.dm.repository.DmRepository;
 import com.ssafy.puzzlepop.friend.domain.FriendDto;
+import com.ssafy.puzzlepop.friend.exception.FriendNotFoundException;
 import com.ssafy.puzzlepop.friend.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,20 +35,20 @@ public class DmServiceImpl implements DmService {
             throw new DmException("bad request");
         }
 
-        // DM 발신자-수신자가 친구 관계 맞는지 확인
-        FriendDto friendDto = friendService.getFriendById1AndId2(dmCreateDto.getFromUserId(), dmCreateDto.getToUserId());
-        if (friendDto == null) {
-            throw new DmException("허용되지 않은 요청");
-        }
-
-        // DB에 저장
-        Dm dm = new Dm();
-
-        dm.setFromUserId(dmCreateDto.getFromUserId());
-        dm.setToUserId(dmCreateDto.getToUserId());
-        dm.setContent(dmCreateDto.getContent());
-
         try {
+            // DM 발신자-수신자가 친구 관계 맞는지 확인
+            FriendDto friendDto = friendService.getFriendById1AndId2(dmCreateDto.getFromUserId(), dmCreateDto.getToUserId());
+            if (friendDto == null) {
+                throw new FriendNotFoundException("친구가 아닌데요..");
+            }
+
+            // DB에 저장
+            Dm dm = new Dm();
+
+            dm.setFromUserId(dmCreateDto.getFromUserId());
+            dm.setToUserId(dmCreateDto.getToUserId());
+            dm.setContent(dmCreateDto.getContent());
+
             dmRepository.save(dm);
 
             // friendId 소켓방 구독하는 사용자에게 내용 뿌리기 위해, ReadResponse 형태로 가공

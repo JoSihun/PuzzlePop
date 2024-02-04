@@ -10,7 +10,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -37,27 +39,25 @@ public class DmController {
 
     /* Socket */
 
-    @EventListener
-    public void handleDmSocketConnectListener(SessionConnectEvent event) {
-        System.out.println("DM : new user connected to socket");
-        System.out.println("sessionid : " + event.getMessage().getHeaders().get("simpSessionId"));
-    }
+//    @EventListener
+//    public void handleDmSocketConnectListener(SessionConnectEvent event) {
+//        System.out.println("DM : new user connected to socket");
+//    }
 
-    @EventListener
-    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        System.out.println("DM : user disconnected to socket");
-        System.out.println("sessionid : " + event.getSessionId());
-    }
+//    @EventListener
+//    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+//        System.out.println("DM : user disconnected to socket");
+//    }
 
-    @MessageMapping("/dm/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
-    public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) {
+//    @SubscribeMapping("/queue/dm/receive/{friendId}")
+//    public void subscribeDm(@DestinationVariable Long friendId, @Header("authentication")) throws DmException {
+//        System.out.println("subscribeDm : "+friendId);
+//    }
 
-        try {
-            DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto);
-            sendingOperations.convertAndSend("/queue/receive/"+friendId.toString(), dmResponseDto);
-        } catch (Exception e) {
-            // TODO: exception handling 필요
-        }
+    @MessageMapping("/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
+    public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) throws DmException {
+        DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto);
+        sendingOperations.convertAndSend("/queue/dm/receive/" + friendId.toString(), dmResponseDto);
     }
 
     //////////
