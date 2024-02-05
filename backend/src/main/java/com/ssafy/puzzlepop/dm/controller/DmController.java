@@ -1,18 +1,16 @@
 package com.ssafy.puzzlepop.dm.controller;
 
 import com.ssafy.puzzlepop.dm.domain.*;
+import com.ssafy.puzzlepop.dm.exception.DmBadRequestException;
 import com.ssafy.puzzlepop.dm.exception.DmException;
+import com.ssafy.puzzlepop.dm.exception.DmNotFoundException;
 import com.ssafy.puzzlepop.dm.service.DmService;
-import com.ssafy.puzzlepop.friend.domain.FriendDto;
-import com.ssafy.puzzlepop.friend.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -39,69 +37,56 @@ public class DmController {
 
     /* Socket */
 
-//    @EventListener
-//    public void handleDmSocketConnectListener(SessionConnectEvent event) {
-//        System.out.println("DM : new user connected to socket");
-//    }
+    @MessageMapping("/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
+    public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) throws DmException, DmBadRequestException {
 
-//    @EventListener
-//    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-//        System.out.println("DM : user disconnected to socket");
-//    }
+        DmReadResponseDto dmResponseDto = dmService.createDm(friendId, dmCreateDto);
+        sendingOperations.convertAndSend("/queue/receive/" + friendId.toString(), dmResponseDto);
 
+    }
+
+    @EventListener
+    public void handleDmSocketConnectListener(SessionConnectEvent event) {
+        System.out.println("DM : new user connected to socket");
+    }
+
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        System.out.println("DM : user disconnected to socket");
+    }
+
+    // 왜 작동 안 되는 건지 확인 필요
 //    @SubscribeMapping("/queue/dm/receive/{friendId}")
-//    public void subscribeDm(@DestinationVariable Long friendId, @Header("authentication")) throws DmException {
+//    public void subscribeDm(@DestinationVariable Long friendId) throws DmException {
 //        System.out.println("subscribeDm : "+friendId);
 //    }
-
-    @MessageMapping("/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
-    public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) throws DmException {
-        DmReadResponseDto dmResponseDto = dmService.createDm(dmCreateDto);
-        sendingOperations.convertAndSend("/queue/dm/receive/" + friendId.toString(), dmResponseDto);
-    }
 
     //////////
 
     /* http */
 
     @PostMapping("/list")
-    public ResponseEntity<?> findDmsByUserIdAndFriendUserId(@RequestBody DmReadRequestDto dmReadRequestDto) {
-        try {
-            List<DmReadResponseDto> dmList = dmService.getDmsByUserIdAndFriendUserId(dmReadRequestDto);
-            return ResponseEntity.status(HttpStatus.OK).body(dmList);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<?> findDmsByUserIdAndFriendUserId(@RequestBody DmReadRequestDto dmReadRequestDto) throws DmException, DmBadRequestException {
+        List<DmReadResponseDto> dmList = dmService.getDmsByUserIdAndFriendUserId(dmReadRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(dmList);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findDmById(@PathVariable Long id) throws DmException, DmNotFoundException {
+        DmDto dmDto = dmService.getDmById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(dmDto);
     }
 
     //    @PutMapping
-    public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) {
-        try {
-            Long id = dmService.updateDm(dmUpdateDto);
-            return ResponseEntity.status(HttpStatus.OK).body(id);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) throws DmException, DmBadRequestException, DmNotFoundException {
+        Long id = dmService.updateDm(dmUpdateDto);
+        return ResponseEntity.status(HttpStatus.OK).body(id);
     }
 
     //    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDm(@PathVariable Long id) {
-        try {
-            dmService.deleteDm(id);
-            return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-    }
-
-    //    @GetMapping("/{id}")
-    public ResponseEntity<?> findDmById(@PathVariable Long id) {
-        try {
-            DmDto dmDto = dmService.getDmById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(id);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<?> deleteDm(@PathVariable Long id) throws DmException, DmNotFoundException {
+        dmService.deleteDm(id);
+        return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");
     }
 
     //////////

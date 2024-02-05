@@ -15,7 +15,7 @@ public class StompHandler implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         System.out.println("StompHandler.preSend");
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        System.out.println(accessor.getHeader());
+        System.out.println(accessor);
 
         return message;
     }

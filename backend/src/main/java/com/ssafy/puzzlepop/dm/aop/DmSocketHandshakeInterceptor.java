@@ -1,4 +1,4 @@
-package com.ssafy.puzzlepop.dm.handler;
+package com.ssafy.puzzlepop.dm.aop;
 
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;

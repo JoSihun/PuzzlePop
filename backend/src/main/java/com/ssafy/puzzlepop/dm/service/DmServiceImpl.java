@@ -1,10 +1,11 @@
 package com.ssafy.puzzlepop.dm.service;
 
 import com.ssafy.puzzlepop.dm.domain.*;
+import com.ssafy.puzzlepop.dm.exception.DmBadRequestException;
 import com.ssafy.puzzlepop.dm.exception.DmException;
+import com.ssafy.puzzlepop.dm.exception.DmNotFoundException;
 import com.ssafy.puzzlepop.dm.repository.DmRepository;
 import com.ssafy.puzzlepop.friend.domain.FriendDto;
-import com.ssafy.puzzlepop.friend.exception.FriendNotFoundException;
 import com.ssafy.puzzlepop.friend.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-// TODO: delete 작업 시 soft delete 되도록 리팩터링&컬럼 추가 필요
 
 @Service
 public class DmServiceImpl implements DmService {
@@ -30,16 +30,19 @@ public class DmServiceImpl implements DmService {
     //////////
 
     @Override
-    public DmReadResponseDto createDm(DmCreateDto dmCreateDto) throws DmException {
+    public DmReadResponseDto createDm(Long friendId, DmCreateDto dmCreateDto) throws DmException, DmBadRequestException {
         if (dmCreateDto.getFromUserId() == null || dmCreateDto.getToUserId() == null || dmCreateDto.getContent() == null) {
-            throw new DmException("bad request");
+            throw new DmBadRequestException();
         }
 
         try {
             // DM 발신자-수신자가 친구 관계 맞는지 확인
             FriendDto friendDto = friendService.getFriendById1AndId2(dmCreateDto.getFromUserId(), dmCreateDto.getToUserId());
             if (friendDto == null) {
-                throw new FriendNotFoundException("친구가 아닌데요..");
+                throw new DmBadRequestException("bad request");
+            }
+            if(!friendId.equals(friendDto.getId())) {
+                throw new DmBadRequestException("bad request - not in friend relationship");
             }
 
             // DB에 저장
@@ -66,15 +69,20 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public Long updateDm(DmUpdateDto dmUpdateDto) throws DmException {
+    public Long updateDm(DmUpdateDto dmUpdateDto) throws DmException, DmNotFoundException, DmBadRequestException {
         if (dmUpdateDto.getId() <= 0 || dmUpdateDto.getContent() == null) {
-            throw new DmException("bad request");
+            throw new DmBadRequestException();
         }
 
-        Dm existDm = dmRepository.findById(dmUpdateDto.getId()).orElse(null);
+        Dm existDm;
+        try {
+            existDm = dmRepository.findById(dmUpdateDto.getId()).orElse(null);
+        } catch (Exception e) {
+            throw new DmException("error occurred during finding data");
+        }
 
         if (existDm == null) {
-            throw new DmException("dm matches to id doesn't exist");
+            throw new DmNotFoundException("dm matches to id doesn't exist");
         }
 
         existDm.setContent(dmUpdateDto.getContent());
@@ -89,11 +97,11 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public void deleteDm(Long id) throws DmException {
+    public void deleteDm(Long id) throws DmException, DmNotFoundException {
 
         Dm existDm = dmRepository.findById(id).orElse(null);
         if (existDm == null) {
-            throw new DmException("dm matches to id doesn't exist");
+            throw new DmNotFoundException();
         }
 
         try {
@@ -105,31 +113,36 @@ public class DmServiceImpl implements DmService {
     }
 
     @Override
-    public DmDto getDmById(Long id) throws DmException {
+    public DmDto getDmById(Long id) throws DmException, DmNotFoundException {
 
-        Dm existDm = dmRepository.findById(id).orElse(null);
+        Dm existDm;
+        try {
+            existDm = dmRepository.findById(id).orElse(null);
+        } catch (Exception e) {
+            throw new DmException("error occurred during inquiring to db");
+        }
 
         if (existDm == null) {
-            throw new DmException("dm matches to id doesn't exist");
+            throw new DmNotFoundException();
         }
 
         return new DmDto(existDm);
     }
 
     @Override
-    public List<DmReadResponseDto> getDmsByUserIdAndFriendUserId(DmReadRequestDto dmReadRequestDto) throws DmException {
+    public List<DmReadResponseDto> getDmsByUserIdAndFriendUserId(DmReadRequestDto dmReadRequestDto) throws DmException, DmBadRequestException {
 
         Long userId = dmReadRequestDto.getUserId();
         Long friendUserId = dmReadRequestDto.getFriendUserId();
 
         if (userId == null || friendUserId == null) {
-            throw new DmException("bad request");
+            throw new DmBadRequestException();
         }
 
         try {
             // 둘이 친구인지 확인
-            if(friendService.getFriendById1AndId2(userId, friendUserId) == null) {
-                throw new DmException("허용되지 않은 요청");
+            if (friendService.getFriendById1AndId2(userId, friendUserId) == null) {
+                throw new DmBadRequestException();
             }
 
             List<Dm> dmList = dmRepository.getDmsByuserIdAndFriendUserId(userId, friendUserId);

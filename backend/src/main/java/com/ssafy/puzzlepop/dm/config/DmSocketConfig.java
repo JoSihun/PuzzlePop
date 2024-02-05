@@ -1,8 +1,10 @@
 package com.ssafy.puzzlepop.dm.config;
 
-import com.ssafy.puzzlepop.dm.handler.DmSocketHandshakeInterceptor;
+import com.ssafy.puzzlepop.dm.aop.DmSocketHandshakeInterceptor;
+import com.ssafy.puzzlepop.dm.aop.StompErrorHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -11,12 +13,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class DmSocketConfig implements WebSocketMessageBrokerConfigurer {
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/dm/{friendId}")
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(new DmSocketHandshakeInterceptor());
+        registry.setErrorHandler(new StompErrorHandler()); // Setting the StompSubProtocolErrorHandler
     }
 
     @Override
@@ -25,8 +27,8 @@ public class DmSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker("/queue");
         // 메세지 발행 요청 url -> 메세지 보낼 때
         registry.setApplicationDestinationPrefixes("/app");
-    }
 
+    }
 
 
 }
