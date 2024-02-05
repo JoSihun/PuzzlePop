@@ -65,8 +65,19 @@ public class DmController {
 
     /* http */
 
+    @PostMapping // /app/send/{friendId}에 대해 여기로 들어옴
+    public ResponseEntity<?> createDm(@RequestBody DmCreateDto dmCreateDto) throws DmException, DmBadRequestException {
+        System.out.println(dmCreateDto);
+        Long friendId = (long) 1;
+        DmReadResponseDto dmResponseDto = dmService.createDm(friendId, dmCreateDto);
+        return ResponseEntity.status(HttpStatus.OK).body(dmResponseDto);
+    }
+
+
     @PostMapping("/list")
     public ResponseEntity<?> findDmsByUserIdAndFriendUserId(@RequestBody DmReadRequestDto dmReadRequestDto) throws DmException, DmBadRequestException {
+        System.out.println(dmReadRequestDto);
+
         List<DmReadResponseDto> dmList = dmService.getDmsByUserIdAndFriendUserId(dmReadRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(dmList);
     }
@@ -77,13 +88,13 @@ public class DmController {
         return ResponseEntity.status(HttpStatus.OK).body(dmDto);
     }
 
-    //    @PutMapping
+//    @PutMapping
     public ResponseEntity<?> updateDm(@RequestBody DmUpdateDto dmUpdateDto) throws DmException, DmBadRequestException, DmNotFoundException {
         Long id = dmService.updateDm(dmUpdateDto);
         return ResponseEntity.status(HttpStatus.OK).body(id);
     }
 
-    //    @DeleteMapping("/{id}")
+//    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDm(@PathVariable Long id) throws DmException, DmNotFoundException {
         dmService.deleteDm(id);
         return ResponseEntity.status(HttpStatus.OK).body("DELETE OK");

@@ -22,13 +22,11 @@ public class DmExceptionHandler {
     @MessageExceptionHandler(Exception.class)
     public Message<byte[]> handleMessageException(Exception e) {
         System.out.println("message exception occurred");
+
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
         accessor.setLeaveMutable(true);
 
-        String errorMessage = e.getMessage();
-
-        return MessageBuilder.createMessage(errorMessage.getBytes(StandardCharsets.UTF_8),
-                accessor.getMessageHeaders());
+        return MessageBuilder.createMessage(e.getMessage().getBytes(StandardCharsets.UTF_8), accessor.getMessageHeaders());
     }
 
     @ExceptionHandler(DmBadRequestException.class)
