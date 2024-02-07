@@ -17,7 +17,7 @@ public interface ImageService {
 
     void deleteImage(Long id) throws ImageException;
 
-    String getBase64ImageById(Long id) throws ImageException;
+    ImageDataResponseDto getBase64ImageById(Long id) throws ImageException;
 
     ImageResponseDto getImageInfoById(Long id) throws ImageException;
 

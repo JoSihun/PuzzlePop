@@ -155,7 +155,7 @@ public class ImageServiceImpl implements ImageService {
 
 
     @Override
-    public String getBase64ImageById(Long id) throws ImageException {
+    public ImageDataResponseDto getBase64ImageById(Long id) throws ImageException {
         Image image;
 
         try {
@@ -169,7 +169,7 @@ public class ImageServiceImpl implements ImageService {
             byte[] fileContent = FileUtils.readFileToByteArray(file);
             String base64Image = Base64.getEncoder().encodeToString(fileContent);
 
-            return base64Image;
+            return new ImageDataResponseDto(image.getId(), image.getFilename(), base64Image);
 
 //            UrlResource imageResource = new UrlResource(imagePath.toUri());
 //            if (imageResource.exists()) {

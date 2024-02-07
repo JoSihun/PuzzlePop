@@ -81,8 +81,8 @@ public class ImageController {
     @GetMapping("/{id}")
     public ResponseEntity<?> findImageById(@PathVariable Long id) {
         try {
-            String base64Image = imageService.getBase64ImageById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(base64Image);
+            ImageDataResponseDto imageData = imageService.getBase64ImageById(id);
+            return ResponseEntity.status(HttpStatus.OK).body(imageData);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
