@@ -2,14 +2,13 @@ package com.ssafy.puzzlepop.engine.controller;
 
 import com.ssafy.puzzlepop.engine.InGameMessage;
 import com.ssafy.puzzlepop.engine.SocketError;
-import com.ssafy.puzzlepop.engine.domain.Game;
-import com.ssafy.puzzlepop.engine.domain.ResponseMessage;
-import com.ssafy.puzzlepop.engine.domain.User;
+import com.ssafy.puzzlepop.engine.domain.*;
 import com.ssafy.puzzlepop.engine.service.GameService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -63,7 +62,8 @@ public class MessageController {
 
         if (game.isEmpty()) {
             System.out.println("game.isEmpty()");
-            Thread.sleep(5000);
+            //잠시 대기
+            Thread.sleep(1500);
             if (game.isEmpty()) {
                 System.out.println("진짜 나간것같아. 게임 지울게!");
                 gameService.deleteRoom(gameId);
@@ -93,10 +93,19 @@ public class MessageController {
                 sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(),new SocketError("room", "방 가득 참"));
                 System.out.println(gameService.findById(message.getRoomId()).getGameName() + "에 " + message.getSender() + "님이 입장하지 못했습니다.");
             }
+        } else if (message.getType().equals(InGameMessage.MessageType.CHAT)) {
+            ResponseChatMessage responseChatMessage = new ResponseChatMessage();
+            responseChatMessage.setChatMessage(message.getMessage());
+            responseChatMessage.setUserid(message.getSender());
+            responseChatMessage.setTime(new Date());
+            sendingOperations.convertAndSend("/topic/chat/room/"+message.getRoomId(), responseChatMessage);
         } else {
             if (message.getMessage().equals("GAME_START")) {
                 System.out.println("GAME_START");
                 Game game = gameService.startGame(message.getRoomId());
+                sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(), game);
+            } else if (message.getMessage().equals("GAME_INFO")) {
+                Game game = gameService.findById(message.getRoomId());
                 sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(), game);
             } else {
                 if (!gameService.findById(message.getRoomId()).isStarted()) {
@@ -106,7 +115,7 @@ public class MessageController {
                 System.out.println("명령어 : " + message.getMessage());
                 System.out.println("게임방 : " + message.getRoomId());
                 ResponseMessage res = gameService.playGame(message);
-                sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(), res);
+                sendingOperations.convertAndSend("/topic/game/room/" + message.getRoomId(), res);
             }
         }
     }
@@ -129,6 +138,30 @@ public class MessageController {
                     gameService.deleteRoom(allRoom.get(i).getGameId());
                 }
 //                System.out.println(allRoom.get(i).getGameName() + "에 " + allRoom.get(i).getTime() + "초 라고 보냈음");
+            }
+        }
+    }
+
+    //배틀 드랍 아이템 제공
+    //20초에 한번씩 제공하기로 함
+    //테스트용 확률 조정
+    @Scheduled(fixedRate = 20000)
+    public void sendDropItem() {
+        //TODO 배틀로 변경해야함
+        List<Game> allRoom = gameService.findAllCooperationRoom();
+        Random random = new Random();
+        for (int i = allRoom.size()-1; i >= 0 ; i--) {
+            if (allRoom.get(i).isStarted()) {
+                //확률 계산
+                int possibility = random.nextInt(100);
+                if (possibility <= 30) {
+                    DropItem item = DropItem.randomCreate();
+                    allRoom.get(i).getDropRandomItem().put(item.getUuid(), item);
+                    ResponseMessage res = new ResponseMessage();
+                    res.setMessage("DROP_ITEM");
+                    res.setRandomItem(item);
+                    sendingOperations.convertAndSend("/topic/game/room/" + allRoom.get(i).getGameId(), res);
+                }
             }
         }
     }

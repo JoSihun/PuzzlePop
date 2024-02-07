@@ -3,6 +3,7 @@ import Puzzle from "@/components/PlayPuzzle/PuzzleCanvas/Puzzle/index";
 import FindChange from "@/components/PlayPuzzle/PuzzleCanvas/Puzzle/FindChange";
 import { getRoomId, getSender } from "../../../../socket-utils/storage";
 import { socket } from "../../../../socket-utils/socket";
+import comboEffectPath from "@/assets/comboEffect.gif";
 
 // let first = true;
 
@@ -260,7 +261,18 @@ const checkUndefined = (nowIndex, nextIndex, direction) => {
   return flag;
 };
 
-const fitTiles = (nowIndex, preIndex, nowTile, preTile, nowShape, preShape, dir, flag, width) => {
+const fitTiles = (
+  nowIndex,
+  preIndex,
+  nowTile,
+  preTile,
+  nowShape,
+  preShape,
+  dir,
+  flag,
+  width,
+  isCombo = false,
+) => {
   const xChange = FindChange.findXChange(nowShape, preShape, width);
   const yChange = FindChange.findYChange(nowShape, preShape, width);
   const xUp = FindChange.findXUp(nowShape, preShape, width);
@@ -339,25 +351,56 @@ const fitTiles = (nowIndex, preIndex, nowTile, preTile, nowShape, preShape, dir,
       break;
   }
 
+  if (isCombo) {
+    console.log(`${nowTile.position._x}, ${nowTile.position._y}에 img 생성!`);
+    const comboEffect = document.createElement("img");
+    const canvasContainer = document.getElementById("canvasContainer");
+    comboEffect.src = comboEffectPath;
+
+    comboEffect.style.zIndex = 100;
+    comboEffect.style.position = "absolute";
+    comboEffect.style.left = `${nowTile.position._x}px`;
+    comboEffect.style.top = `${nowTile.position._y}px`;
+
+    canvasContainer.appendChild(comboEffect);
+
+    console.log(comboEffect);
+    setTimeout(() => {
+      console.log("effect 삭제");
+      console.log(comboEffect);
+      console.log(comboEffect.parentNode);
+      console.log(comboEffect.parentElement);
+      comboEffect.parentNode.removeChild(comboEffect);
+    }, 500);
+  }
+
   // console.log("flag && uniteFlag: ", flag && uniteFlag);
   if (flag && uniteFlag) {
-    uniteTiles(nowIndex, preIndex, nowTile, preTile);
+    uniteTiles(nowIndex, preIndex, true);
   }
 };
 
 //ADD_PIECE
-const uniteTiles = (nowIndex, preIndex) => {
-  send(
-    "/app/game/message",
-    {},
-    JSON.stringify({
-      type: "GAME",
-      roomId: getRoomId(),
-      sender: getSender(),
-      message: "ADD_PIECE",
-      targets: nowIndex.toString() + "," + preIndex.toString(),
-    }),
-  );
+export const uniteTiles = (
+  nowIndex,
+  preIndex,
+  isSender = false,
+  isCombo = false,
+  direction = -1,
+) => {
+  if (isSender) {
+    send(
+      "/app/game/message",
+      {},
+      JSON.stringify({
+        type: "GAME",
+        roomId: getRoomId(),
+        sender: getSender(),
+        message: "ADD_PIECE",
+        targets: nowIndex.toString() + "," + preIndex.toString(),
+      }),
+    );
+  }
 
   const nowGroup = config.groupTiles[nowIndex][1];
   const preGroup = config.groupTiles[preIndex][1];
@@ -386,7 +429,11 @@ const uniteTiles = (nowIndex, preIndex) => {
   // console.log(dismantling(config.groupTiles[preIndex][1]));
   if (!dismantling(config.groupTiles[preIndex][1])) {
     // console.log(config.groupTiles[preIndex][1]);
-    groupFit(config.groupTiles[preIndex][1], nowIndex);
+    if (isCombo) {
+      comboFit(nowIndex, preIndex, direction);
+    } else {
+      groupFit(config.groupTiles[preIndex][1], nowIndex);
+    }
   }
 };
 
@@ -408,7 +455,29 @@ const dismantling = (groupIndexNow) => {
   return false;
 };
 
+const comboFit = (nowIndex, preIndex, direction) => {
+  const nowTile = config.groupTiles[nowIndex][0];
+  const preTile = config.groupTiles[preIndex][0];
+
+  fitTiles(
+    preIndex,
+    nowIndex,
+    preTile,
+    nowTile,
+    config.shapes[preIndex],
+    config.shapes[nowIndex],
+    direction,
+    false,
+    nowTile.bounds.width,
+    true,
+  );
+};
+
 const groupFit = (nowGroup, nowIdx) => {
+  // if (isCombo) {
+  //   console.log('groupFit!!', isCombo, direction)
+  // }
+
   const xTileCount = config.tilesPerRow;
   const yTileCount = config.tilesPerColumn;
   const groupArr = [];

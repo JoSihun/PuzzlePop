@@ -8,8 +8,8 @@ export default function SingleGameListPage() {
   return (
     <>
       <Header />
-      <GamePageNavigation />
-      <PlayPuzzle category="single" />
+      {/* <GamePageNavigation /> */}
+      {/* <PlayPuzzle category="single" /> */}
     </>
   );
 }
