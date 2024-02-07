@@ -7,6 +7,7 @@ import RankPage from "./RankPage";
 import ShopPage from "./ShopPage";
 import OptionsPage from "./OptionsPage";
 import ProfilePage from "./ProfilePage";
+import DmRoomPage from "./DmRoomPage";
 
 export function Routes() {
   return (
@@ -15,6 +16,7 @@ export function Routes() {
       <Route path="/rank" element={<RankPage />} />
       <Route path="/shop" element={<ShopPage />} />
       <Route path="/options" element={<OptionsPage />} />
+      <Route path="/dmRoom" element={<DmRoomPage/>}/>
       <Route path="/user/:userId" element={<ProfilePage />} />
       <Route path="/game" element={<SingleGame.ListPage />} />
       <Route path="/game/single" element={<SingleGame.ListPage />} />
