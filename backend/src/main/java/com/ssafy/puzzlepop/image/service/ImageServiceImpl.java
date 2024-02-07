@@ -155,7 +155,7 @@ public class ImageServiceImpl implements ImageService {
 
 
     @Override
-    public ImageDataResponseDto getBase64ImageById(Long id) throws ImageException {
+    public String getBase64ImageById(Long id) throws ImageException {
         Image image;
 
         try {
@@ -169,7 +169,7 @@ public class ImageServiceImpl implements ImageService {
             byte[] fileContent = FileUtils.readFileToByteArray(file);
             String base64Image = Base64.getEncoder().encodeToString(fileContent);
 
-            return new ImageDataResponseDto(image.getId(), image.getFilename(), base64Image);
+            return base64Image;
 
 //            UrlResource imageResource = new UrlResource(imagePath.toUri());
 //            if (imageResource.exists()) {
@@ -280,9 +280,9 @@ public class ImageServiceImpl implements ImageService {
 
         try {
             List<Image> sPuzzleList = imageRepository.findAllByType(STANDARD_PUZZLE_IMAGE_TYPE);
-            if (sPuzzleList == null) { // 존재하는 id에 대한 요청만 허용한다고 가정. 필요 시 수정
-                throw new ImageException("이미지 조회 중 오류 발생");
-            }
+//            if (sPuzzleList == null || sPuzzleList.isEmpty()) { // 존재하는 id에 대한 요청만 허용한다고 가정. 필요 시 수정
+//                throw new ImageException("이미지 조회 중 오류 발생");
+//            }
 
             for (Image image : sPuzzleList) {
                 Path imagePath = Paths.get(image.getFilepath() + "." + image.getFilenameExtension());
