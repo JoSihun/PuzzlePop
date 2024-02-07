@@ -4,11 +4,16 @@ import { Point } from "paper/dist/paper-core";
 import { initializeConfig } from "../puzzle-core/initializeConfig";
 import { setMoveEvent } from "../puzzle-core/setMoveEvent";
 import { uniteTiles } from "../puzzle-core/uniteTiles";
-import { removeItemStyleToPiece, setItemStyleToAllPiece } from "../puzzle-core/item";
+import {
+  removeItemStyleToPiece,
+  searchItemList,
+  setItemStyleToAllPiece,
+} from "../puzzle-core/item";
 
 const PuzzleConfigState = {
   config: null,
   itemInventory: [],
+  setItemInventory: (itemList) => {},
   initializePuzzle: () => {},
   lockPuzzle: () => {},
   movePuzzle: () => {},
@@ -23,11 +28,11 @@ export const usePuzzleConfig = () => useContext(PuzzleConfigContext);
 
 export const PuzzleConfigProvider = ({ children }) => {
   const canvasRef = useRef(null);
-  const [itemInventory, setItemInventory] = useState([]);
+  const [itemInventory, setItemInventory] = useState([null, null, null, null, null]);
   const [config, setConfig] = useState(null);
 
   const initializePuzzle = useCallback(
-    ({ puzzleImg, level, shapes, board = [], itemList = [] }) => {
+    ({ puzzleImg, level, shapes, board = [] }) => {
       if (!canvasRef.current || config !== null) {
         return;
       }
@@ -37,7 +42,7 @@ export const PuzzleConfigProvider = ({ children }) => {
       const attachedMoveEventConfig = setMoveEvent({ config: initializedConfig });
       const attachedItemToAllPieceConfig = setItemStyleToAllPiece({
         config: attachedMoveEventConfig,
-        itemList,
+        itemList: searchItemList(board),
       });
 
       // 3. 상태 업데이트
@@ -65,9 +70,7 @@ export const PuzzleConfigProvider = ({ children }) => {
     // TODO: 여기서 Lock에 대한 UI처리를 해제한다.
   }, []);
 
-  const addPiece = useCallback(({ fromIndex, toIndex, itemList = [] }) => {
-    setItemInventory(itemList);
-
+  const addPiece = useCallback(({ fromIndex, toIndex }) => {
     setConfig((prevConfig) => {
       const afterUnitedConfig = uniteTiles({
         config: prevConfig,
@@ -127,6 +130,7 @@ export const PuzzleConfigProvider = ({ children }) => {
       config,
       canvasRef,
       itemInventory,
+      setItemInventory,
       initializePuzzle,
       lockPuzzle,
       movePuzzle,
@@ -137,6 +141,7 @@ export const PuzzleConfigProvider = ({ children }) => {
     [
       config,
       itemInventory,
+      setItemInventory,
       initializePuzzle,
       lockPuzzle,
       movePuzzle,

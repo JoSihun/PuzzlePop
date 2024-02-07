@@ -12,7 +12,8 @@ import ItemController from "../../components/ItemController";
 const { connect, send, subscribe, disconnect } = socket;
 
 export default function CooperationGameIngamePage() {
-  const { config, lockPuzzle, movePuzzle, unLockPuzzle, addPiece, addCombo } = usePuzzleConfig();
+  const { config, lockPuzzle, movePuzzle, unLockPuzzle, addPiece, addCombo, setItemInventory } =
+    usePuzzleConfig();
 
   const navigate = useNavigate();
   const { roomId } = useParams();
@@ -29,7 +30,7 @@ export default function CooperationGameIngamePage() {
 
   const initializeGame = (data) => {
     setGameData(data);
-    console.log("gamedata is here!", gameData, data);
+    // console.log("gamedata is here!", gameData, data);
   };
 
   const connectSocket = async () => {
@@ -42,7 +43,11 @@ export default function CooperationGameIngamePage() {
           const data = JSON.parse(message.body);
           console.log(data);
 
-          // 2. 게임정보 받기
+          if (data[`${getTeam()}ItemList`]) {
+            setItemInventory(data[`${getTeam()}ItemList`]);
+          }
+
+          // 게임정보 받기
           if (data.gameType && data.gameType === "COOPERATION") {
             initializeGame(data);
             return;

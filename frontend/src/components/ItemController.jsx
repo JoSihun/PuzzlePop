@@ -49,12 +49,18 @@ export default function ItemController() {
   console.log(itemInventory);
 
   return (
-    <>
-      {itemInventory.map(({ name }, index) => (
-        <button key={index} onClick={() => _useItem(index + 1)}>
-          {name}
-        </button>
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      {itemInventory.map((item, index) => (
+        <div key={index}>
+          <button
+            style={{ fontSize: "50px", display: "block" }}
+            onClick={() => _useItem(index + 1)}
+          >
+            {item ? item.name : "X"}
+          </button>
+          <div style={{ fontSize: "30px", display: "block", textAlign: "center" }}>{index + 1}</div>
+        </div>
       ))}
-    </>
+    </div>
   );
 }
