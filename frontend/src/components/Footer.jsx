@@ -1,7 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components";
-import { Box, AppBar, Button, Typography, Drawer, createTheme, ThemeProvider } from "@mui/material";
+import { Box, AppBar, Button, Typography, Drawer } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { deepPurple } from "@mui/material/colors";
+import FriendList from "@/components/User/FriendList"
 
 export default function Footer() {
   const [open, setOpen] = useState(false);
@@ -39,6 +41,7 @@ export default function Footer() {
         <Drawer anchor="right" open={open} onClose={toggleDrawer}>
           <Box sx={{ margin: "40px" }}>
             <DrawerTitle variant="h5">친구 목록</DrawerTitle>
+            <FriendList></FriendList>
           </Box>
         </Drawer>
       </FooterBar>
