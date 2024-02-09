@@ -37,9 +37,9 @@ public class User {
     @ColumnDefault("true")
     private Boolean soundEffect;
 
-    private int playingGameID;
+    private Integer playingGameID;
     @ColumnDefault("0")
-    private int gold;
+    private Integer gold;
     @Column(length = 32)
     private String onlineStatus;
 
