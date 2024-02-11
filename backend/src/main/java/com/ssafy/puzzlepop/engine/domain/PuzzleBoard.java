@@ -35,8 +35,8 @@ public class PuzzleBoard {
     private int itemCount = 0;
     private boolean[][] visited;
 
-    private final int CANVAS_WIDTH = 2580;
-    private final int CANVAS_LENGTH = 1440;
+    private final int CANVAS_WIDTH = 1000;
+    private final int CANVAS_LENGTH = 750;
 
     public Item addItem(ItemType type) {
         if (itemCount >= 5) {
@@ -235,12 +235,12 @@ public class PuzzleBoard {
                         CANVAS_WIDTH/2 -
                                 pieceSize/2 +
                                 pieceSize * ((j*2) + (i % 2)) -
-                                picture.getWidth();
+                                picture.getImgWidth() + 50;
                 double y =
                         CANVAS_LENGTH/2 -
                                 pieceSize/2 +
                                 pieceSize*i -
-                                picture.getLength()/2;
+                                picture.getImgHeight()/2;
 
                 randomForPiece.setPosition_x(x);
                 randomForPiece.setPosition_y(y);
