@@ -5,18 +5,17 @@ import com.ssafy.puzzlepop.user.filter.TokenAuthenticationProcessingFilter;
 import com.ssafy.puzzlepop.user.handler.Oauth2AuthenticationFailureHandler;
 import com.ssafy.puzzlepop.user.handler.Oauth2AuthenticationSuccessHandler;
 import com.ssafy.puzzlepop.user.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -27,7 +26,8 @@ public class SecurityConfig {
     private final TokenAuthenticationProcessingFilter tokenAuthenticationProcessingFilter;
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
-    private String frontendUrl = "https://i10a304.p.ssafy.io";
+    @Value("${FRONTEND_URL}")
+    private String frontendUrl;
 
     public SecurityConfig(UserService userService, Oauth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler, Oauth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler, TokenAuthenticationProcessingFilter tokenAuthenticationProcessingFilter, HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository) {
         this.userService = userService;
@@ -41,9 +41,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+//        http.cors(cors -> cors.disable());
         http
-                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http
+                .csrf(AbstractHttpConfigurer::disable);
 //                .sessionManagement();
 
         http
@@ -67,23 +69,24 @@ public class SecurityConfig {
         http
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl(frontendUrl)
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-//                        .deleteCookies("accessTokenName", "refreshTokenName")
+                        .deleteCookies("accessToken", "refreshToken")
                 );
 
 
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().permitAll()
-//                        .requestMatchers("/","/login/**").permitAll()
+                                .anyRequest().permitAll()
 
-//                        .anyRequest().authenticated()
+//                                .requestMatchers("/user/**").hasRole("USER")   // "/user" 경로는 "USER" 권한 필요
+//                                .requestMatchers("/**").permitAll()   // 나머지 모든 경로 허용
+//                                .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
                 );
 
-        http
-                .addFilterBefore(tokenAuthenticationProcessingFilter, UsernamePasswordAuthenticationFilter.class);
+//        http
+//                .addFilterBefore(tokenAuthenticationProcessingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -91,13 +94,16 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(frontendUrl));
+//        configuration.setAllowedOrigins(List.of(frontendUrl));
+        configuration.addAllowedOriginPattern(frontendUrl);
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
+
+        configuration.addExposedHeader("Authorization");
+
         UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", configuration);
         return urlBasedCorsConfigurationSource;
     }
-
 }
