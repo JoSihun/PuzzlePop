@@ -17,7 +17,8 @@ public class DmSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/dm/{friendId}")
                 .setAllowedOriginPatterns("*")
-                .addInterceptors(new DmSocketHandshakeInterceptor());
+                .addInterceptors(new DmSocketHandshakeInterceptor())
+                .withSockJS();
         registry.setErrorHandler(new StompErrorHandler()); // Setting the StompSubProtocolErrorHandler
     }
 

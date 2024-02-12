@@ -22,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/dm")
+@CrossOrigin("*")
 public class DmController {
 
     private final DmService dmService;
@@ -39,10 +40,8 @@ public class DmController {
 
     @MessageMapping("/send/{friendId}") // /app/send/{friendId}에 대해 여기로 들어옴
     public void sendDm(@DestinationVariable Long friendId, DmCreateDto dmCreateDto) throws DmException, DmBadRequestException {
-
         DmReadResponseDto dmResponseDto = dmService.createDm(friendId, dmCreateDto);
         sendingOperations.convertAndSend("/queue/receive/" + friendId.toString(), dmResponseDto);
-
     }
 
     @EventListener
