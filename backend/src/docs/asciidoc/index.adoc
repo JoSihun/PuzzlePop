@@ -1,0 +1,8 @@
+= REST API
+
+[[Order]]
+
+== PuzzlePop API
+
+include::{snippets}/gameinfo-all/http-request.adoc[]
+include::{snippets}/gameinfo-all/http-response.adoc[]
