@@ -48,14 +48,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 //                .sessionManagement();
 
-        http
-                .formLogin((login) -> login.disable());
-
-        http
+        http.formLogin((login) -> login.disable())
                 .httpBasic((basic) -> basic.disable());
 
-        http
-                .oauth2Login((oauth2) -> oauth2
+        http.oauth2Login((oauth2) -> oauth2
                         .loginPage("/login")
                         .authorizationEndpoint(auth -> auth
                                 .baseUri("/oauth2/authorization")
@@ -63,11 +59,9 @@ public class SecurityConfig {
                         .userInfoEndpoint((userInfoEndpointConfig) ->
                                 userInfoEndpointConfig.userService(userService))
                         .successHandler(oauth2AuthenticationSuccessHandler)
-                        .failureHandler(oauth2AuthenticationFailureHandler)
-                );
+                        .failureHandler(oauth2AuthenticationFailureHandler));
 
-        http
-                .logout((logout) -> logout
+        http.logout((logout) -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl(frontendUrl)
                         .invalidateHttpSession(true)
@@ -88,6 +82,7 @@ public class SecurityConfig {
 //        http
 //                .addFilterBefore(tokenAuthenticationProcessingFilter, UsernamePasswordAuthenticationFilter.class);
 
+        http.addFilterBefore(tokenAuthenticationProcessingFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
