@@ -5,8 +5,9 @@ import ImageIcon from "./ImageIcon";
 import HeaderPuzzleImage from "@/assets/icons/header_puzzle.png";
 import HeaderRankImage from "@/assets/icons/header_rank.png";
 import HeaderShopImage from "@/assets/icons/header_shop.png";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import Logo from "@/assets/logo.png";
-import { AppBar, Toolbar, Button } from "@mui/material";
+import { AppBar, Toolbar, Button, IconButton } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { deepPurple } from "@mui/material/colors";
 import GamePageNavigation from "@/components/GamePageNavigation";
@@ -56,7 +57,7 @@ export default function Header() {
 
   const moveLogin = async () => {
     // window.alert("아직 개발 중인 기능이에요 😂");
-    const SERVER_URL = "https://i10a304.p.ssafy.io/api"
+    const SERVER_URL = "https://i10a304.p.ssafy.io/api";
 
     if (isLoggedIn) {
       // 로그인 상태이면 로그아웃 처리
@@ -72,8 +73,8 @@ export default function Header() {
 
   const moveProfile = async () => {
     const userId = getCookie("userId");
-    navigate(`/user/${userId}`)
-  }
+    navigate(`/user/${userId}`);
+  };
 
   return (
     <HeaderBar>
@@ -82,14 +83,18 @@ export default function Header() {
         <GamePageNavigation />
 
         <nav style={{ display: "flex", gap: "20px" }}>
+          <IconButton onClick={() => navigate("/about")}>
+            <HelpOutlineIcon fontSize="large" />
+          </IconButton>
           <ImageIcon imageSource={HeaderPuzzleImage} size="md" onClick={() => navigate("/game")} />
           <ImageIcon imageSource={HeaderRankImage} size="md" onClick={() => navigate("/rank")} />
           {/* <ImageIcon imageSource={HeaderShopImage} size="md" onClick={() => navigate("/shop")} /> */}
+
           <ThemeProvider theme={theme}>
             <Button variant="text" sx={{ px: 2.5 }} size="large" onClick={moveProfile}>
               User
             </Button>
-            
+
             <Button variant="text" sx={{ px: 2.5 }} size="large" onClick={moveLogin}>
               {isLoggedIn ? "Log out" : "Log in"}
             </Button>

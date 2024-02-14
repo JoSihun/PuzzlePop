@@ -7,12 +7,14 @@ import RankPage from "./RankPage";
 // import ShopPage from "./ShopPage";
 // import OptionsPage from "./OptionsPage";
 import ProfilePage from "./ProfilePage";
+import AboutGamePage from "./AboutGamePage";
 
 export function Routes() {
   return (
     <ReactRouterRoutes>
       <Route path="/" element={<HomePage />} />
       <Route path="/rank" element={<RankPage />} />
+      <Route path="/about" element={<AboutGamePage />} />
       {/* <Route path="/shop" element={<ShopPage />} /> */}
       {/* <Route path="/options" element={<OptionsPage />} /> */}
       <Route path="/user/:userId" element={<ProfilePage />} />
