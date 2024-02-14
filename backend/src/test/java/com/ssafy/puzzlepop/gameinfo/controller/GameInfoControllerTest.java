@@ -1,5 +1,6 @@
 package com.ssafy.puzzlepop.gameinfo.controller;
 
+import com.ssafy.puzzlepop.gameinfo.domain.GameInfoDto;
 import com.ssafy.puzzlepop.gameinfo.service.GameInfoService;
 import com.ssafy.puzzlepop.user.filter.TokenAuthenticationProcessingFilter;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDoc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -23,7 +25,9 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureRestDocs
@@ -49,7 +53,17 @@ class GameInfoControllerTest {
     }
 
     @Test
-    void readGameInfo() {
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void readGameInfo() throws Exception {
+        // given
+        GameInfoDto responseDto = gameInfoService.readGameInfo(1L);
+
+        // when and then
+        mockMvc.perform(get("/gameinfo")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("gameId", "1"))
+                .andExpect(status().isOk())
+                .andDo(document("gameinfo-read", responseFields()));
     }
 
     @Test
@@ -57,10 +71,9 @@ class GameInfoControllerTest {
     void readAllGameInfo() throws Exception {
         // given
 
-        // when
-        // then
-
-        mockMvc.perform(get("/gameinfo/all"))
+        // when and then
+        mockMvc.perform(get("/gameinfo/all")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(document("gameinfo-all"));
     }

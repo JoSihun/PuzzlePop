@@ -4,5 +4,23 @@
 
 == PuzzlePop API
 
+include::{snippets}/gameinfo-all/curl-request.adoc[]
 include::{snippets}/gameinfo-all/http-request.adoc[]
 include::{snippets}/gameinfo-all/http-response.adoc[]
+include::{snippets}/gameinfo-all/httpie-request.adoc[]
+include::{snippets}/gameinfo-all/request-body.adoc[]
+include::{snippets}/gameinfo-all/response-body.adoc[]
+
+=== 게임 정보 조회
+
+include::{snippets}/gameinfo-read/http-request.adoc[]
+include::{snippets}/gameinfo-read/http-response.adoc[]
+include::{snippets}/gameinfo-read/request-body.adoc[]
+include::{snippets}/gameinfo-read/response-body.adoc[]
+
+== 모든 게임 정보 조회
+
+include::{snippets}/gameinfo-all/http-request.adoc[]
+include::{snippets}/gameinfo-all/http-response.adoc[]
+include::{snippets}/gameinfo-all/request-body.adoc[]
+include::{snippets}/gameinfo-all/response-body.adoc[]
