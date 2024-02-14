@@ -321,7 +321,7 @@ public class RecordServiceImpl implements RecordService {
             List<WinCountRankingDto> teamBattleWinCountRanking = new ArrayList<>();
 
             List<UserInfoDto> userList = userService.getAllUsers();
-            System.out.println(userList);
+//            System.out.println(userList);
             for (UserInfoDto user : userList) {
                 int playedTeamBattleGameCount = 0;
                 int teamBattleWinCount = 0;
