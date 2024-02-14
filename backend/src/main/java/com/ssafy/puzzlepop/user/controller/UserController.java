@@ -1,10 +1,11 @@
 package com.ssafy.puzzlepop.user.controller;
 
 import com.ssafy.puzzlepop.user.domain.UserDto;
+import com.ssafy.puzzlepop.user.domain.UserInfoDto;
 import com.ssafy.puzzlepop.user.exception.UserNotFoundException;
 import com.ssafy.puzzlepop.user.service.UserService;
+import jdk.security.jarsigner.JarSigner;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,23 +20,12 @@ public class UserController {
     private final UserService userService;
 
 
-
-//    @PostMapping("/user")
-//    public ResponseEntity<?> createUser(@RequestBody UserDto requestDto) {
-//        try {
-//            Long id = userService.createUser(requestDto);
-//            return ResponseEntity.status(HttpStatus.CREATED).body(id);
-//        } catch (UserNotFoundException e) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-//        }
-//    }
-
     @GetMapping("/user")
-    public ResponseEntity<?> getUserByEmail(@RequestBody UserDto requestDto) {
+    public ResponseEntity<?> getUserByEmail(@RequestParam Long id) {
+        System.out.println("/user GET : getUserByEmail");
+        System.out.println("id:"+id);
         try {
-            UserDto responseDto = userService.getUserByEmail(requestDto.getEmail());
+            UserDto responseDto = userService.getUserById(id);
             return ResponseEntity.status(HttpStatus.OK).body(responseDto);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -48,7 +38,7 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody UserDto requestDto) {
         try {
             Long id = userService.createUser(requestDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(id);
+            return ResponseEntity.status(HttpStatus.OK).body(id);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
@@ -85,10 +75,7 @@ public class UserController {
     @GetMapping("/user/list")
     public ResponseEntity<?> findAllUsers() {
         try {
-            List<UserDto> responseDtos = userService.getAllUsers();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Location", "http://localhost:5173/");
+            List<UserInfoDto> responseDtos = userService.getAllUsers();
             return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -98,10 +85,12 @@ public class UserController {
     }
 
     @GetMapping("/user/search/email")
-    public ResponseEntity<?> findUserByEmail(@RequestBody UserDto requestDto) {
+    public ResponseEntity<?> findUsersByEmail(@RequestParam String email) {
+        System.out.println("/user/search/email GET");
+        System.out.println("email: "+email);
         try{
-            UserDto responseDto = userService.getUserByEmail(requestDto.getEmail());
-            return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+            List<UserInfoDto> responseDtos = userService.getUsersByEmail(email);
+            return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         } catch (Exception e) {
@@ -110,9 +99,12 @@ public class UserController {
     }
 
     @GetMapping("/user/search/nickname")
-    public ResponseEntity<?> findUsersByNickname(@RequestBody UserDto requestDto) {
+    public ResponseEntity<?> findUsersByNickname(@RequestParam String nickname) {
+        System.out.println("/user/search/nickname GET");
+        System.out.println("nickname: "+nickname);
         try {
-            List<UserDto> responseDtos = userService.getUsersByNickname(requestDto.getNickname());
+            List<UserInfoDto> responseDtos = userService.getUsersByNickname(nickname);
+            System.out.println(responseDtos);
             return ResponseEntity.status(HttpStatus.OK).body(responseDtos);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

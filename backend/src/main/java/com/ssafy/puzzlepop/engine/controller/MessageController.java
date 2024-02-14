@@ -7,6 +7,7 @@ import com.ssafy.puzzlepop.engine.service.GameService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ public class MessageController {
     private final SimpMessageSendingOperations sendingOperations;
     private final int BATTLE_TIMER = 300;
     private String sessionId;
+    private final Queue<User> waitingList = new LinkedList<>();
 
 
     //세션 아이디 설정
@@ -59,13 +61,7 @@ public class MessageController {
                 gameService.sessionToGame.remove(sessionId);
             } else {
                 if (!game.isStarted()) {
-                    System.out.println(game.getSessionToUser().get(sessionId).getId() + " 님이 퇴장하십니다.");
-                    game.exitPlayer(sessionId);
-                    gameService.sessionToGame.remove(sessionId);
-                } else {
-                    System.out.println("어딜 나가 이자식아");
-                    return;
-//                    //잠시 대기
+                    //잠시 대기
 //                    Thread.sleep(5000);
 //                    if (game.isEmpty()) {
 //                        System.out.println("진짜 나간것같아. 게임 지울게!");
@@ -74,6 +70,13 @@ public class MessageController {
 //                        System.out.println("새로고침이였어. 다시 연결한다!");
 //                        return;
 //                    }
+                    System.out.println(game.getSessionToUser().get(sessionId).getId() + " 님이 퇴장하십니다.");
+                    game.exitPlayer(sessionId);
+
+                    gameService.sessionToGame.remove(sessionId);
+                } else {
+                    System.out.println("어딜 나가 이자식아");
+                    return;
                 }
             }
         }
@@ -84,15 +87,15 @@ public class MessageController {
 
 
     @MessageMapping("/game/message")
-    public void enter(InGameMessage message) {
+    public void enter(InGameMessage message) throws Exception {
         if (message.getType().equals(InGameMessage.MessageType.ENTER)) {
             Game game = gameService.findById(message.getRoomId());
 
             gameService.sessionToGame.put(sessionId, message.getRoomId());
 
-            if (game.enterPlayer(new User(message.getSender()), sessionId)) {
+            if (game.enterPlayer(new User(message.getSender(), message.isMember(), sessionId), sessionId)) {
                 sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(), game);
-                System.out.println(gameService.findById(message.getRoomId()).getGameName() + "에 " + message.getSender() + "님이 입장하셨습니다.");
+                System.out.println(gameService.findById(message.getRoomId()).getGameName() + "에 " + message.getSender() + " " + message.isMember() + "님이 입장하셨습니다.");
             } else {
                 System.out.println("방 입장 실패");
                 sendingOperations.convertAndSend("/topic/game/room/"+message.getRoomId(),new SocketError("room", "방 가득 참"));
@@ -112,7 +115,44 @@ public class MessageController {
 
             responseChatMessage.setTime(new Date());
             sendingOperations.convertAndSend("/topic/chat/room/"+message.getRoomId(), responseChatMessage);
-        } else {
+        } else if (message.getType().equals(InGameMessage.MessageType.QUICK)) {
+            waitingList.add(new User(message.getSender(), message.isMember(), sessionId));
+            for (User u : waitingList) {
+                System.out.println(u);
+            }
+            ResponseMessage res = new ResponseMessage();
+
+            if (waitingList.size() >= 2) {
+                User player1 = waitingList.poll();
+                User player2 = waitingList.poll();
+
+                Room room = new Room();
+                room.setName(UUID.randomUUID().toString());
+                room.setRoomSize(2);
+                room.setGameType("BATTLE");
+                room.setUserid(player1.getId());
+                gameService.sessionToGame.put(sessionId, player1.getId());
+                gameService.sessionToGame.put(sessionId, player2.getId());
+
+                Game game = gameService.createRoom(room);
+                game.enterPlayer(player1, sessionId);
+                game.enterPlayer(player2, sessionId);
+
+                gameService.startGame(game.getGameId());
+
+                res.setMessage("GAME_START");
+                res.setTargets(game.getGameId());
+                sendingOperations.convertAndSend("/queue/game/room/quick/"+ player1.getId(), res);
+                sendingOperations.convertAndSend("/queue/game/room/quick/"+ player2.getId(), res);
+                
+                sendingOperations.convertAndSend("/topic/game/room/"+game.getGameId(), game);
+            } else {
+                res.setMessage("WAITING");
+                sendingOperations.convertAndSend("/queue/game/room/quick/"+ message.getSender(), res);
+            }
+        }
+
+        else {
             if (message.getMessage().equals("GAME_START")) {
                 System.out.println("GAME_START");
                 Game game = gameService.startGame(message.getRoomId());
@@ -137,6 +177,11 @@ public class MessageController {
                 res.setBlueItemList(game.getBluePuzzle().getItemList());
                 res.setRedProgressPercent((double) game.getRedPuzzle().getCorrectedCount() / (game.getRedPuzzle().getLengthCnt() * game.getRedPuzzle().getWidthCnt()) * 100);
                 res.setBlueProgressPercent((double) game.getBluePuzzle().getCorrectedCount() / (game.getBluePuzzle().getLengthCnt() * game.getBluePuzzle().getWidthCnt()) * 100);
+
+                res.setRedBundles(game.getRedPuzzle().getBundles());
+                if (game.getGameType().equals("BATTLE")) {
+                    res.setBlueBundles(game.getBluePuzzle().getBundles());
+                }
                 sendingOperations.convertAndSend("/topic/game/room/" + message.getRoomId(), res);
             }
         }

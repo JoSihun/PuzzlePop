@@ -2,17 +2,12 @@ import { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import Draggable from "react-draggable";
 
-const defaultItemInventory = [null, null, null, null, null];
-
-export default function ItemController({
-  itemInventory = [...defaultItemInventory],
-  onSendUseItemMessage,
-}) {
+export default function ItemController({ itemInventory, onSendUseItemMessage }) {
   const _useItem = useCallback(
     (keyNumber) => {
       console.log(`<ItemController /> : ${keyNumber} 키 누름!!!`);
 
-      if (itemInventory[keyNumber - 1] !== null && onSendUseItemMessage) {
+      if (itemInventory[keyNumber - 1] && onSendUseItemMessage) {
         onSendUseItemMessage(keyNumber);
       }
     },
@@ -43,7 +38,7 @@ export default function ItemController({
   }, [handleKeyDownItem]);
 
   return (
-    <Draggable defaultPosition={{ x: 1000, y: -200 }}>
+    <Draggable defaultPosition={{ x: 20, y: -800 }}>
       <Container>
         <h3>인벤토리</h3>
         <ItemSpaces>
@@ -66,6 +61,8 @@ const itemNameToKoreanMatcher = {
   MAGNET: "자석",
   HINT: "힌트",
   FRAME: "액자",
+  SHIELD: "쉴드",
+  MIRROR: "거울",
 };
 
 const match = (matcher) => (key) => {

@@ -5,12 +5,19 @@ import com.ssafy.puzzlepop.engine.InGameMessage;
 import com.ssafy.puzzlepop.engine.domain.*;
 import com.ssafy.puzzlepop.gameinfo.domain.GameInfoDto;
 import com.ssafy.puzzlepop.gameinfo.service.GameInfoService;
+import com.ssafy.puzzlepop.record.domain.RecordCreateDto;
+import com.ssafy.puzzlepop.record.service.RecordService;
+import com.ssafy.puzzlepop.team.domain.TeamDto;
+import com.ssafy.puzzlepop.team.service.TeamService;
+import com.ssafy.puzzlepop.teamuser.domain.TeamUserRequestDto;
+import com.ssafy.puzzlepop.teamuser.service.TeamUserService;
+import com.ssafy.puzzlepop.user.domain.UserDto;
+import com.ssafy.puzzlepop.user.service.UserService;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -23,22 +30,26 @@ public class GameService {
     public Map<String, String> sessionToGame;
 
     private final GameInfoService gameInfoService;
+    private final TeamService teamService;
+    private final TeamUserService teamUserService;
+    private final UserService userService;
+    private final RecordService recordService;
 
     @PostConstruct
     //의존관게 주입완료되면 실행되는 코드
     private void init() {
-        gameRooms = new LinkedHashMap<>();
+        gameRooms = new HashMap<>();
         gameRooms = Collections.synchronizedMap(gameRooms);
         gson = new Gson();
 
-        sessionToGame = new LinkedHashMap<>();
+        sessionToGame = new HashMap<>();
         sessionToGame = Collections.synchronizedMap(sessionToGame);
     }
 
     //협동 게임방 불러오기
     public List<Game> findAllCooperationRoom() {
         List<Game> result = new ArrayList<>(gameRooms.values());
-        for (int i = result.size()-1; i >= 0; i--) {
+        for (int i = result.size() - 1; i >= 0; i--) {
             if (!result.get(i).getGameType().equals("COOPERATION")) {
                 result.remove(i);
             }
@@ -53,7 +64,7 @@ public class GameService {
     //배틀 게임방 불러오기
     public List<Game> findAllBattleRoom() {
         List<Game> result = new ArrayList<>(gameRooms.values());
-        for (int i = result.size()-1; i >= 0; i--) {
+        for (int i = result.size() - 1; i >= 0; i--) {
             if (!result.get(i).getGameType().equals("BATTLE")) {
                 result.remove(i);
             }
@@ -98,7 +109,7 @@ public class GameService {
         return game;
     }
 
-    public ResponseMessage playGame(InGameMessage inGameMessage) {
+    public ResponseMessage playGame(InGameMessage inGameMessage) throws Exception {
 
         String roomId = inGameMessage.getRoomId();
         String sender = inGameMessage.getSender();
@@ -130,7 +141,7 @@ public class GameService {
             ourColor = "RED";
             yourPuzzle = game.getBluePuzzle();
             yourColor = "BLUE";
-        } else if (game.getBlueTeam().isIn(sender)){
+        } else if (game.getBlueTeam().isIn(sender)) {
 //            System.out.println("얘 블루팀임");
             ourPuzzle = game.getBluePuzzle();
             ourColor = "BLUE";
@@ -225,6 +236,7 @@ public class GameService {
             }
             //반사됨
             else if (mirror != -1 && shield == -1) {
+                yourPuzzle.useItem(mirror + 1, yourPuzzle);
                 res.setMessage("MIRROR");
                 res.setTargets(ourColor);
                 res.setRandomItem(item);
@@ -247,10 +259,12 @@ public class GameService {
             else if (mirror == -1 && shield != -1) {
                 //아무일 없음
                 res.setMessage("SHIELD");
+                yourPuzzle.useItem(shield + 1, yourPuzzle);
             }
             //둘다 있을 때
             else {
                 //반사부터 적용됨
+                yourPuzzle.useItem(mirror + 1, yourPuzzle);
                 res.setMessage("MIRROR");
                 res.setTargets(ourColor);
                 res.setRandomItem(item);
@@ -277,6 +291,7 @@ public class GameService {
                 int[] p = ourPuzzle.getIdxToCoordinate().get(now.getIndex());
                 if (ourPuzzle.getBoard()[p[0]][p[1]].isLocked()) {
                     res.setMessage("BLOCKED");
+                    res.setTargets(targets);
                     res.setTeam(ourColor);
                     return res;
                 }
@@ -284,7 +299,6 @@ public class GameService {
                 ourPuzzle.getBoard()[p[0]][p[1]].setLocked(true);
             }
 
-            System.out.println(targets + " 피스 잠금");
             res.setMessage("LOCKED");
             res.setTargets(targets);
 
@@ -332,25 +346,29 @@ public class GameService {
         }
 
         //게임 끝났는지 마지막에 확인
-        if (game.getGameType().equals("BATTLE")) {
-            if (ourPuzzle.isCompleted() || yourPuzzle.isCompleted()) {
-                //게임 정보 업데이트
-                game.setFinished(true);
-                game.setFinishTime(new Date());
+        if (!game.isSaved()) {
+            if (game.getGameType().equals("BATTLE")) {
+                if (ourPuzzle.isCompleted() || yourPuzzle.isCompleted()) {
+                    //게임 정보 업데이트
+                    game.setFinished(true);
+                    game.setFinishTime(new Date());
 
-                res.setFinished(true);
+                    res.setFinished(true);
 
-                save(game);
-            }
-        } else if (game.getGameType().equals("COOPERATION")) {
-            if (ourPuzzle.isCompleted()) {
-                //게임 정보 업데이트
-                game.setFinished(true);
-                game.setFinishTime(new Date());
+                    save(game);
+                    game.setSaved(true);
+                }
+            } else if (game.getGameType().equals("COOPERATION")) {
+                if (ourPuzzle.isCompleted()) {
+                    //게임 정보 업데이트
+                    game.setFinished(true);
+                    game.setFinishTime(new Date());
 
-                res.setFinished(true);
+                    res.setFinished(true);
 
-                save(game);
+                    save(game);
+                    game.setSaved(true);
+                }
             }
         }
 
@@ -358,53 +376,113 @@ public class GameService {
         if (game.getGameType().equals("BATTLE")) {
             if (ourColor.equals("RED")) {
                 res.setRedProgressPercent(
-                        (double)ourPuzzle.getCorrectedCount()/
-                        ((double)ourPuzzle.getWidthCnt()*(double)ourPuzzle.getLengthCnt())*100);
+                        (double) ourPuzzle.getCorrectedCount() /
+                                ((double) ourPuzzle.getWidthCnt() * (double) ourPuzzle.getLengthCnt()) * 100);
                 res.setBlueProgressPercent(
-                        (double)yourPuzzle.getCorrectedCount()/
-                                ((double)yourPuzzle.getWidthCnt()*(double)yourPuzzle.getLengthCnt())*100);
+                        (double) yourPuzzle.getCorrectedCount() /
+                                ((double) yourPuzzle.getWidthCnt() * (double) yourPuzzle.getLengthCnt()) * 100);
             } else {
                 res.setBlueProgressPercent(
-                        (double)ourPuzzle.getCorrectedCount()/
-                                ((double)ourPuzzle.getWidthCnt()*(double)ourPuzzle.getLengthCnt())*100);
+                        (double) ourPuzzle.getCorrectedCount() /
+                                ((double) ourPuzzle.getWidthCnt() * (double) ourPuzzle.getLengthCnt()) * 100);
                 res.setRedProgressPercent(
-                        (double)yourPuzzle.getCorrectedCount()/
-                                ((double)yourPuzzle.getWidthCnt()*(double)yourPuzzle.getLengthCnt())*100);
+                        (double) yourPuzzle.getCorrectedCount() /
+                                ((double) yourPuzzle.getWidthCnt() * (double) yourPuzzle.getLengthCnt()) * 100);
             }
         } else {
             res.setRedProgressPercent(
-                    (double)ourPuzzle.getCorrectedCount()/
-                            ((double)ourPuzzle.getWidthCnt()*(double)ourPuzzle.getLengthCnt())*100);
+                    (double) ourPuzzle.getCorrectedCount() /
+                            ((double) ourPuzzle.getWidthCnt() * (double) ourPuzzle.getLengthCnt()) * 100);
         }
         return res;
     }
 
-    private void save(Game game) {
-        GameInfoDto gameInfoDto = new GameInfoDto(
-                null,
-                game.getGameType(),
-                game.isFinished(),
-                game.getPlayers().size(),
-                game.getRoomSize(),
-                game.getRedPuzzle().getWidthCnt() * game.getRedPuzzle().getLengthCnt(),
-                null,
-                null,
-                game.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
-                game.getFinishTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-                );
+    private void save(Game game) throws Exception {
+        // 저장된 적 있으면 return
+        if (game.isSaved()) return;
 
-        Long gameInfo = gameInfoService.createGameInfo(gameInfoDto);
+        int matchedPieceCount = 0; // 유저별 카운팅 안 되는 상황이라 모두 더미값 0으로 통일
 
-        //TODO 그 외 정보들도 여기서 함께 저장해야함
-    }
+        try {
+            // gameinfo 생성
+            GameInfoDto gameInfoDto = new GameInfoDto(
+                    null,
+                    game.getGameType(),
+                    game.isFinished(),
 
-    public boolean enterGame(String gameId, String userId, String sessionId) {
-        Game game = gameRooms.get(gameId);
-        if (game.enterPlayer(new User(userId), sessionId)) {
-            return true;
+                    game.getPlayers().size(),
+                    game.getRoomSize(),
+                    game.getRedPuzzle().getWidthCnt() * game.getRedPuzzle().getLengthCnt(),
+
+                    null,
+                    null,
+                    game.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
+                    game.getFinishTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+            );
+            Long gameInfoId = gameInfoService.createGameInfo(gameInfoDto);
+
+            if ("COOPERATION".equals(game.getGameType())) {
+                // team 1개 생성
+                Long teamId = teamService.createTeam(new TeamDto(null, gameInfoId, game.getRedPuzzle().getCorrectedCount()));
+
+                // user * players.size() 만큼 생성
+//                List<Long> userIdList = new ArrayList<>();
+                for (User u : game.getPlayers()) {
+                    Long uid = (long) -1;
+
+                    if (u.isMember()) { // 회원
+                        uid = Long.parseLong(u.getId());
+                        recordService.createRecord(new RecordCreateDto(uid, gameInfoId)); // 회원인 경우에만 record 생성
+                    } else { // 비회원
+                        UserDto userDto = new UserDto();
+                        userDto.setGivenName(u.getId()); // 닉네임 대신 이름으로 바로 저장해버리기~
+                        uid = userService.createUser(userDto);
+                    }
+
+//                    userIdList.add(uid);
+                    teamUserService.createTeamUser(new TeamUserRequestDto(null, teamId, uid, matchedPieceCount));
+                }
+
+            } else if ("BATTLE".equals(game.getGameType())) {
+                // team 2개 생성
+                Long redTeamId = teamService.createTeam(new TeamDto(null, gameInfoId, game.getRedPuzzle().getCorrectedCount()));
+                Long blueTeamId = teamService.createTeam(new TeamDto(null, gameInfoId, game.getBluePuzzle().getCorrectedCount()));
+
+                // user * players.size() 만큼 생성
+//                List<Long> redTeamUserIdList = new ArrayList<>();
+//                List<Long> blueTeamUserIdList = new ArrayList<>();
+                for (User u : game.getRedTeam().getPlayers()) {
+                    Long uid;
+
+                    if (u.isMember()) { // 회원
+                        uid = Long.parseLong(u.getId());
+                        recordService.createRecord(new RecordCreateDto(uid, gameInfoId));
+                    } else { // 비회원
+                        UserDto userDto = new UserDto();
+                        userDto.setGivenName(u.getId());
+                        uid = userService.createUser(userDto);
+                    }
+
+                    teamUserService.createTeamUser(new TeamUserRequestDto(null, redTeamId, uid, matchedPieceCount));
+                }
+                for (User u : game.getBlueTeam().getPlayers()) {
+                    Long uid;
+
+                    if (u.isMember()) {
+                        uid = Long.parseLong(u.getId());
+                        recordService.createRecord(new RecordCreateDto(uid, gameInfoId));
+                    } else {
+                        UserDto userDto = new UserDto();
+                        userDto.setGivenName(u.getId());
+                        uid = userService.createUser(userDto);
+                    }
+
+                    teamUserService.createTeamUser(new TeamUserRequestDto(null, blueTeamId, uid, matchedPieceCount));
+                }
+            }
+        } catch (Exception e) {
+            throw new Exception("error occurred during save game data");
         }
-
-        return false;
     }
 
     public int[] comboCheck(PuzzleBoard puzzle) {
@@ -412,7 +490,7 @@ public class GameService {
         if (puzzle.getComboTimer().isEmpty()) {
             puzzle.getComboTimer().add(now);
         } else {
-            if (now.getTime()/1000 - puzzle.getComboTimer().peekLast().getTime()/1000 <= 5) {
+            if (now.getTime() / 1000 - puzzle.getComboTimer().peekLast().getTime() / 1000 <= 5) {
                 puzzle.getComboTimer().add(now);
             } else {
                 puzzle.getComboTimer().clear();
@@ -421,9 +499,13 @@ public class GameService {
         }
 
         if (puzzle.getComboTimer().size() % 3 == 0) {
-            return new int[] {puzzle.getComboTimer().size(), puzzle.getComboTimer().size() / 3};
+            return new int[]{puzzle.getComboTimer().size(), puzzle.getComboTimer().size() / 3};
         } else {
             return null;
         }
+    }
+
+    public Game quickMatching(User user) {
+        return null;
     }
 }

@@ -9,7 +9,7 @@ import { red, blue, deepPurple } from "@mui/material/colors";
 
 const { send } = socket;
 
-export default function Chatting({ chatHistory, isbattleingame = false }) {
+export default function Chatting({ chatHistory, isIngame = false, isBattle = false }) {
   const [message, setMessage] = useState("");
   const [lastHeight, setLastHeight] = useState(null);
   const chatElement = useRef();
@@ -78,13 +78,26 @@ export default function Chatting({ chatHistory, isbattleingame = false }) {
     },
   });
 
-  const currentTheme = !isbattleingame ? "purple" : getTeam() === "red" ? "redTeam" : "blueTeam";
+  const currentTheme = !isBattle ? "purple" : getTeam() === "red" ? "redTeam" : "blueTeam";
+  const currentScrollbarTheme = !isBattle
+    ? deepPurple[300]
+    : getTeam() === "red"
+      ? red[300]
+      : blue[300];
 
   return (
     <ThemeProvider theme={theme}>
-      <Wrapper isbattleingame={isbattleingame}>
+      <Wrapper $isIngame={isIngame}>
         {chatHistory && (
-          <div ref={chatElement} style={{ flexGrow: 1, margin: "10px", overflow: "scroll" }}>
+          <div
+            ref={chatElement}
+            style={{
+              flexGrow: 1,
+              margin: "10px",
+              overflowY: "scroll",
+              scrollbarColor: `${currentScrollbarTheme} rgba(255, 255, 255, 0)`,
+            }}
+          >
             {/* 채팅 기록을 화면에 출력 */}
             {chatHistory.map((chat, index) => (
               <div key={index}>
@@ -96,7 +109,7 @@ export default function Chatting({ chatHistory, isbattleingame = false }) {
         )}
 
         <Form onSubmit={handleMessageSend}>
-          {isbattleingame ? (
+          {isIngame ? (
             <GameOpenVidu
               gameId={`${getRoomId()}_${getTeam()}`}
               playerName={getSender()}
@@ -126,7 +139,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   height: ${(props) => {
-    if (props.isbattleingame) {
+    if (props.$isIngame) {
       return "750px";
     } else {
       return "200px";
@@ -142,12 +155,18 @@ const Form = styled.form`
 
 const ChatInput = styled(TextField)`
   width: 74%;
-  height: 100%;
+  height: 50px;
+  margin: 0;
   margin-left: auto;
+
+  & .MuiInputBase-input {
+    padding: 10px 14px;
+    height: 20px;
+  }
 `;
 
 const ChatBtn = styled(Button)`
   width: 16%;
   margin-left: 4px;
-  height: 80%;
+  height: 40px;
 `;
