@@ -1,6 +1,6 @@
 import { dmSocket } from "@/socket-utils/dmSocket";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { request } from "@/apis/requestBuilder";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -10,16 +10,28 @@ const { connect, send, subscribe, disconnect } = dmSocket;
 // TODO: 추후 페이지 요청 시 넘겨받은 값으로 사용하도록 수정해야 함
 
 export default function DmRoomPage() {
+  const navigate = useNavigate();
   const { friendId } = useParams();
   const [dmHistory, setDmHistory] = useState([]);
   const [dmContent, setDmContent] = useState("");
 
-  const userId = 1;
   const friendUserId = 2;
+
+  const getCookie = (name) => {
+    const cookies = document.cookie.split('; ');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+  };
 
   // 이전 DM 대화 내역 불러오기
   const fetchDmHistory = async () => {
     console.log("**************fetchDmHistory**************");
+    const userId = getCookie("userId");
+
     const response = await request.post(`/dm/list`, {
       user_id: userId,
       friend_user_id: friendUserId,
@@ -75,6 +87,13 @@ export default function DmRoomPage() {
 
   const initialize = async () => {
     try {
+
+      const userId = getCookie("userId");
+      if(!userId) {
+        alert("잘못된 접근입니다.");
+        navigate("/");
+      }
+
       await fetchDmHistory();
       await connectDm();
     } catch (e) {
