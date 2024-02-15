@@ -40,11 +40,24 @@ export default function GameCard({ room, category }) {
 
   const chipMessage = `${parseInt(roomSize / 2)} : ${parseInt(roomSize / 2)}`;
 
-  const enterRoom = async (roomId) => {
-    const sender = window.prompt("닉네임을 입력해주세요");
-    if (!sender) {
-      return;
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(';').shift();
     }
+  }
+  
+  const enterRoom = async (roomId) => {
+
+    let sender = getCookie("userId"); // 쿠키에서 userId 가져오기
+    if (!sender) {
+      sender = window.prompt("닉네임을 입력해주세요");
+      if (!sender) {
+        return;
+      }
+    }
+
     setSender(sender);
     setRoomId(roomId);
     setTeam("red");
@@ -56,7 +69,7 @@ export default function GameCard({ room, category }) {
     } catch (e) {
       if (isAxiosError(e) && e.response.status === 400) {
         // window.alert("다른 닉네임을 사용해주세요.");
-        setSnackMessage("다른 닉네임을 사용해주세요!");
+        setSnackMessage(e.response.data);
         setSnackOpen(true);
       }
       if (isAxiosError(e) && e.response.status === 403) {
@@ -67,15 +80,22 @@ export default function GameCard({ room, category }) {
   };
 
   const handleClick = (event, started) => {
-    if (started) {
-      setSnackMessage("이미 게임이 시작된 방입니다!");
-      setSnackOpen(true);
-    } else if (redTeam.players.length + blueTeam.players.length === roomSize) {
-      setSnackMessage("정원이 가득찬 방입니다!");
-      setSnackOpen(true);
-      // alert("정원이 가득찬 방입니다! ㅠㅠ");
-    } else if (!started) {
+    // if (started) {
+    //   setSnackMessage("이미 게임이 시작된 방입니다!");
+    //   setSnackOpen(true);
+    // } else if (redTeam.players.length + blueTeam.players.length === roomSize) {
+    //   setSnackMessage("정원이 가득찬 방입니다!");
+    //   setSnackOpen(true);
+    //   // alert("정원이 가득찬 방입니다! ㅠㅠ");
+    // } else if (!started) {
+    //   enterRoom(event.currentTarget.id);
+    // }
+
+    try {
       enterRoom(event.currentTarget.id);
+    } catch(e) {
+      setSnackOpen(e.response.data);
+      setSnackOpen(true);
     }
   };
 

@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getSender, getRoomId } from "@/socket-utils/storage";
-import { socket } from "@/socket-utils/socket";
+import styled from "styled-components";
+import { isAxiosError } from "axios";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GameWaitingBoard from "@/components/GameWaiting/GameWaitingBoard";
 import Loading from "@/components/Loading";
+
+import { getSender, getRoomId } from "@/socket-utils/storage";
+import { socket } from "@/socket-utils/socket2";
 import { request } from "@/apis/requestBuilder";
-import { isAxiosError } from "axios";
+
+import backgroundPath from "@/assets/backgrounds/background.gif";
+import { useGameInfo } from "../../hooks/useGameInfo";
 
 const { connect, send, subscribe } = socket;
 
@@ -16,6 +22,8 @@ export default function CooperationGameWaitingPage() {
   const { roomId } = useParams();
   const [gameData, setGameData] = useState(null);
   const [chatHistory, setChatHistory] = useState([]); // 채팅 기록을 저장하는 상태 추가
+
+  const { setImage } = useGameInfo();
 
   const isLoading = useMemo(() => {
     return gameData === null;
@@ -31,12 +39,17 @@ export default function CooperationGameWaitingPage() {
 
         // 1. 게임이 시작되면 인게임 화면으로 보낸다.
         if (data.gameId && Boolean(data.started) && !Boolean(data.finished)) {
-          navigate(`/game/cooperation/ingame/${data.gameId}`, {
-            replace: true,
-          });
+          window.location.replace(`/game/cooperation/ingame/${data.gameId}`);
           return;
         }
         setGameData(data);
+        if (data.picture.encodedString === "짱구.jpg") {
+          setImage(
+            "https://i.namu.wiki/i/1zQlFS0_ZoofiPI4-mcmXA8zXHEcgFiAbHcnjGr7RAEyjwMHvDbrbsc8ekjZ5iWMGyzJrGl96Fv5ZIgm6YR_nA.webp",
+          );
+        } else {
+          setImage(`data:image/jpeg;base64,${data.picture.encodedString}`);
+        }
       });
 
       subscribe(`/topic/chat/room/${roomId}`, (message) => {
@@ -54,10 +67,20 @@ export default function CooperationGameWaitingPage() {
           type: "ENTER",
           roomId: getRoomId(),
           sender: getSender(),
+          member: getCookie("userId") ? true : false,
         }),
       );
     });
   };
+
+  //쿠키 확인
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(";").shift();
+    }
+  }
 
   const initialize = async () => {
     try {
@@ -85,23 +108,28 @@ export default function CooperationGameWaitingPage() {
     // eslint-disable-next-line
   }, []);
 
-  if (isLoading) {
-    return <Loading message="방 정보 불러오는 중..." />;
-  }
-
   return (
-    <>
+    <Wrapper>
       <Header />
-      <GameWaitingBoard
-        player={getSender()}
-        data={gameData}
-        allowedPiece={allowedPiece}
-        category="cooperation"
-        chatHistory={chatHistory}
-      />
+      {isLoading ? (
+        <Loading message="방 정보 불러오는 중..." />
+      ) : (
+        <GameWaitingBoard
+          player={getSender()}
+          data={gameData}
+          allowedPiece={allowedPiece}
+          category="cooperation"
+          chatHistory={chatHistory}
+        />
+      )}
       <Footer />
-    </>
+    </Wrapper>
   );
 }
 
 const allowedPiece = [100, 200, 300, 400, 500];
+
+const Wrapper = styled.div`
+  height: 1000px;
+  background-image: url(${backgroundPath});
+`;

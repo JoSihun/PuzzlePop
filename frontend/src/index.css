@@ -23,3 +23,54 @@ li {
   margin: 0;
   padding: 0;
 }
+
+@keyframes tornado-animation {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(800px, 0);
+  }
+  37% {
+    transform: translate(800px, 200px);
+  }
+  62% {
+    transform: translate(0, 200px);
+  }
+  74% {
+    transform: translate(0, 400px);
+  }
+  100% {
+    transform: translate(800px, 400px);
+  }
+}
+
+@keyframes tornado-send-animation {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(400px, -400px);
+  }
+}
+
+.bounce {
+  position: relative;
+  animation: bounce 1s;
+}
+
+@keyframes bounce {
+  33% {
+    top: 0;
+    height: 40px;
+  }
+  50% {
+    top: 0;
+    height: 52px;
+  }
+
+  0%,
+  100% {
+    top: 0;
+  }
+}

@@ -12,7 +12,7 @@ import lombok.Setter;
 public class InGameMessage {
 
     public enum MessageType {
-        ENTER, GAME, CHAT
+        ENTER, GAME, CHAT, QUICK, IMAGE
     }
 
     private MessageType type;
@@ -21,6 +21,7 @@ public class InGameMessage {
     private String roomId;
     //보내는 사람
     private String sender;
+    private boolean isMember;
     //내용
     private String message;
 

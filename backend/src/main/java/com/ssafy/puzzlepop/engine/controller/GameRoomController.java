@@ -51,7 +51,8 @@ public class GameRoomController {
     @PostMapping("/room")
     @ResponseBody
     public Game createRoom(@RequestBody Room room) {
-        return gameService.createRoom(room);
+        Game game = gameService.createRoom(room);
+        return game;
     }
 
 
@@ -80,7 +81,6 @@ public class GameRoomController {
 
         Game game = gameService.findById(gameId);
         game.updatePicture(p);
-        System.out.println(p);
         return ResponseEntity.ok(p);
     }
 
@@ -90,6 +90,8 @@ public class GameRoomController {
         byte[] bytes = baos.toByteArray();
         return Base64.getEncoder().encodeToString(bytes);
     }
+
+
 
     //게임 대기실 입장
     @PostMapping("/room/{roomId}")
@@ -114,22 +116,22 @@ public class GameRoomController {
                     return ResponseEntity.ok(game);
                 }
 
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Game is started");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미 시작된 방입니다.");
             }
 
             if (game.getRedTeam().getPlayers().contains(user) || game.getBlueTeam().getPlayers().contains(user)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("너 이미 안에 있는데?");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("다른 닉네임을 사용해주세요.");
             }
 
             if (game.getGameType().equals("BATTLE")) {
                 if (game.getRedTeam().getPlayers().size() + game.getBlueTeam().getPlayers().size() == game.getRoomSize()) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Room is fulled");
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("정원이 가득찬 방입니다.");
                 }
 
                 return ResponseEntity.ok(game);
             } else {
                 if (game.getRedTeam().getPlayers().size() == game.getRoomSize()) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Room is fulled");
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("정원이 가득찬 방입니다.");
                 }
 
                 return ResponseEntity.ok(game);

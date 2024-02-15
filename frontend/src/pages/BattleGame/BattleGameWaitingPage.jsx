@@ -1,46 +1,64 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { getSender, getRoomId, setTeam } from "@/socket-utils/storage";
-import { socket } from "@/socket-utils/socket";
+import { isAxiosError } from "axios";
+
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GameWaitingBoard from "@/components/GameWaiting/GameWaitingBoard";
 import Loading from "@/components/Loading";
+
+import { getSender, getRoomId, setTeam } from "@/socket-utils/storage";
+import { socket } from "@/socket-utils/socket2";
 import { request } from "@/apis/requestBuilder";
-import { isAxiosError } from "axios";
-import backgroundPath from "@/assets/background.gif";
+
+import backgroundPath from "@/assets/backgrounds/battleBackground.gif";
+import { useGameInfo } from "../../hooks/useGameInfo";
 
 const { connect, send, subscribe } = socket;
 
 export default function BattleGameWaitingPage() {
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { roomId } = useParams();
   const [gameData, setGameData] = useState(null);
   const [chatHistory, setChatHistory] = useState([]); // 채팅 기록을 저장하는 상태 추가
 
+  const { setImage } = useGameInfo()
+
+  const isLoading = useMemo(() => {
+    return gameData === null;
+  }, [gameData]);
+
   const connectSocket = async () => {
     // websocket 연결 시도
+
     connect(() => {
       console.log("@@@@@@@@@@@@@@@@ 대기실 소켓 연결 @@@@@@@@@@@@@@@@@@");
 
       subscribe(`/topic/game/room/${roomId}`, (message) => {
         const data = JSON.parse(message.body);
 
-        data.blueTeam.players.forEach((player) => {
-          console.log(player);
-          if (player.id === getSender()) {
-            setTeam("blue");
-          }
-        });
+        if (data.blueTeam && data.blueTeam.players && Array.isArray(data.blueTeam.players)) {
+          data.blueTeam.players.forEach((player) => {
+            console.log(player);
+            if (player.id === getSender()) {
+              setTeam("blue");
+            }
+          });
+        }
 
         // 1. 게임이 시작되면 인게임 화면으로 보낸다.
-        if (data.gameId && data.started && data.started === true) {
-          window.location.href = `/game/battle/ingame/${data.gameId}`;
+        if (data.gameId && Boolean(data.started) && !Boolean(data.finished)) {
+          window.location.replace(`/game/battle/ingame/${data.gameId}`);
           return;
         }
         setGameData(data);
+        if (data.picture.encodedString === "짱구.jpg") {
+          setImage("https://i.namu.wiki/i/1zQlFS0_ZoofiPI4-mcmXA8zXHEcgFiAbHcnjGr7RAEyjwMHvDbrbsc8ekjZ5iWMGyzJrGl96Fv5ZIgm6YR_nA.webp")
+        } else {
+          setImage(`data:image/jpeg;base64,${data.picture.encodedString}`)
+        }
       });
 
       subscribe(`/topic/chat/room/${roomId}`, (message) => {
@@ -58,10 +76,20 @@ export default function BattleGameWaitingPage() {
           type: "ENTER",
           roomId: getRoomId(),
           sender: getSender(),
+          member: getCookie("userId") ? true : false,
         }),
       );
     });
   };
+
+  //쿠키 확인
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(";").shift();
+    }
+  }
 
   const initialize = async () => {
     try {
@@ -86,35 +114,22 @@ export default function BattleGameWaitingPage() {
 
     initialize();
 
-    return () => {
-      // disconnect();
-      // console.log("WebSocket 연결 종료");
-    };
-
     // eslint-disable-next-line
   }, []);
-
-  useEffect(() => {
-    if (gameData) {
-      setLoading(false);
-    }
-  }, [gameData]);
 
   return (
     <Wrapper>
       <Header />
-      {loading ? (
+      {isLoading ? (
         <Loading message="방 정보 불러오는 중..." />
       ) : (
-        <>
-          <GameWaitingBoard
-            player={getSender()}
-            data={gameData}
-            allowedPiece={allowedPiece}
-            category="battle"
-            chatHistory={chatHistory}
-          />
-        </>
+        <GameWaitingBoard
+          player={getSender()}
+          data={gameData}
+          allowedPiece={allowedPiece}
+          category="battle"
+          chatHistory={chatHistory}
+        />
       )}
       <Footer />
     </Wrapper>
