@@ -14,6 +14,8 @@ import { request } from "@/apis/requestBuilder";
 
 import backgroundPath from "@/assets/backgrounds/background.gif";
 import { useGameInfo } from "../../hooks/useGameInfo";
+import { useGameStart } from "../../hooks/useGameStart";
+import IngameLoadingOverlay from "../../components/IngameLoadingOverlay";
 
 const { connect, send, subscribe } = socket;
 
@@ -24,6 +26,12 @@ export default function CooperationGameWaitingPage() {
   const [chatHistory, setChatHistory] = useState([]); // 채팅 기록을 저장하는 상태 추가
 
   const { setImage } = useGameInfo();
+
+  const {
+    isShow: isShowIngameLoadingOverlay,
+    onStart,
+    time: toIngameLoadingTime,
+  } = useGameStart({ afterStartCallback: () => window.alert("게임 드가자~~~") });
 
   const isLoading = useMemo(() => {
     return gameData === null;
@@ -109,21 +117,25 @@ export default function CooperationGameWaitingPage() {
   }, []);
 
   return (
-    <Wrapper>
-      <Header />
-      {isLoading ? (
-        <Loading message="방 정보 불러오는 중..." />
-      ) : (
-        <GameWaitingBoard
-          player={getSender()}
-          data={gameData}
-          allowedPiece={allowedPiece}
-          category="cooperation"
-          chatHistory={chatHistory}
-        />
-      )}
-      <Footer />
-    </Wrapper>
+    <>
+      <Wrapper>
+        <button onClick={onStart}>모달 테스트셈</button>
+        <Header />
+        {isLoading ? (
+          <Loading message="방 정보 불러오는 중..." />
+        ) : (
+          <GameWaitingBoard
+            player={getSender()}
+            data={gameData}
+            allowedPiece={allowedPiece}
+            category="cooperation"
+            chatHistory={chatHistory}
+          />
+        )}
+        <Footer />
+      </Wrapper>
+      <IngameLoadingOverlay isShow={isShowIngameLoadingOverlay} time={toIngameLoadingTime} />
+    </>
   );
 }
 
