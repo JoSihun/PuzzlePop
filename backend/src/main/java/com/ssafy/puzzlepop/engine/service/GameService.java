@@ -394,7 +394,7 @@ public class GameService {
     }
 
     public synchronized void save(Game game) throws Exception {
-        System.out.println("game save called");
+//        System.out.println("game save called");
         // 저장된 적 있으면 return
         if (game.isSaved()) return;
 
@@ -431,9 +431,10 @@ public class GameService {
                         uid = Long.parseLong(u.getId());
                         recordService.createRecord(new RecordCreateDto(uid, gameInfoId)); // 회원인 경우에만 record 생성
                     } else { // 비회원
-                        UserDto userDto = new UserDto();
-                        userDto.setGivenName(u.getId()); // 닉네임 대신 이름으로 바로 저장해버리기~
-                        uid = userService.createUser(userDto);
+                        continue; // 회원 저장도 안 해버리기~
+//                        UserDto userDto = new UserDto();
+//                        userDto.setGivenName(u.getId()); // 닉네임 대신 이름으로 바로 저장해버리기~
+//                        uid = userService.createUser(userDto);
                     }
 
 //                    userIdList.add(uid);
@@ -455,9 +456,10 @@ public class GameService {
                         uid = Long.parseLong(u.getId());
                         recordService.createRecord(new RecordCreateDto(uid, gameInfoId));
                     } else { // 비회원
-                        UserDto userDto = new UserDto();
-                        userDto.setGivenName(u.getId());
-                        uid = userService.createUser(userDto);
+                        continue;
+//                        UserDto userDto = new UserDto();
+//                        userDto.setGivenName(u.getId());
+//                        uid = userService.createUser(userDto);
                     }
 
                     teamUserService.createTeamUser(new TeamUserRequestDto(null, redTeamId, uid, matchedPieceCount));
@@ -469,9 +471,10 @@ public class GameService {
                         uid = Long.parseLong(u.getId());
                         recordService.createRecord(new RecordCreateDto(uid, gameInfoId));
                     } else {
-                        UserDto userDto = new UserDto();
-                        userDto.setGivenName(u.getId());
-                        uid = userService.createUser(userDto);
+                        continue;
+//                        UserDto userDto = new UserDto();
+//                        userDto.setGivenName(u.getId());
+//                        uid = userService.createUser(userDto);
                     }
 
                     teamUserService.createTeamUser(new TeamUserRequestDto(null, blueTeamId, uid, matchedPieceCount));
