@@ -16,6 +16,7 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	asciidoctorExt
 }
 
 repositories {
@@ -55,6 +56,9 @@ dependencies {
 	// FileUtils
 	implementation 'commons-io:commons-io:2.11.0'
 
+	// Spring Rest Docs
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
 
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
@@ -62,7 +66,6 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
     testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -79,6 +82,30 @@ tasks.named('test') {
 }
 
 tasks.named('asciidoctor') {
+	configurations 'asciidoctorExt'
 	inputs.dir snippetsDir
 	dependsOn test
 }
+
+tasks.named('bootJar') {
+	dependsOn asciidoctor // (3)
+	copy {
+//		from "build/docs/asciidoc"
+//		into 'src/main/resources/static/docs'
+		from "${asciidoctor.outputDir}"
+		into 'src/main/resources/static/docs'
+	}
+}
+
+//bootJar {
+//	dependsOn asciidoctor
+//	from file('build/docs/asciidoc')
+//	into file('src/main/resources/static/docs')
+//}
+
+//bootJar {
+//	dependsOn asciidoctor
+//	from ("${asciidoctor.outputDir}/html5") {
+//		into 'static/docs'
+//	}
+//}
